@@ -1,0 +1,428 @@
+# 混合云架构
+
+## 本章概述
+
+混合云是企业IT的重要形态。本章将学习混合云架构设计、网络连接和数据管理。
+
+## 学习目标
+
+- 理解混合云架构模式
+- 掌握混合云网络连接
+- 学会混合云存储方案
+- 掌握混合云容器平台
+- 理解混合云身份管理
+- 学会混合云监控运维
+
+---
+
+## 1. 混合云架构模式
+
+### 1.1 混合云场景
+
+```
+混合云应用场景
+
+场景一：云爆发 (Cloud Bursting)
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          负载均衡                                        │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                      流量分发                                    │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────┬─────────────────────────────────────────┘
+                                │
+            ┌───────────────────┴───────────────────┐
+            │                                       │
+            ▼                                       ▼
+    ┌───────────────┐                       ┌───────────────┐
+    │   本地数据中心  │                       │    公有云      │
+    │   常规负载     │                       │   峰值溢出     │
+    │   ┌─────────┐  │                       │  ┌─────────┐  │
+    │  │ Server  │  │                       │  │ Server  │  │
+    │  │ Pool    │  │                       │  │ Pool    │  │
+    │  └─────────┘  │                       │  └─────────┘  │
+    └───────────────┘                       └───────────────┘
+
+场景二：数据本地化
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  ┌───────────────────┐              ┌───────────────────┐              │
+│  │    本地数据中心    │              │      公有云        │              │
+│  │  ┌─────────────┐  │              │  ┌─────────────┐  │              │
+│  │  │ 核心数据库   │  │◄────────────►│  │  Web应用    │  │              │
+│  │  │ (敏感数据)   │  │   安全连接   │  │  (前端)     │  │              │
+│  │  └─────────────┘  │              │  └─────────────┘  │              │
+│  └───────────────────┘              └───────────────────┘              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 混合云架构组件
+
+```
+混合云核心组件
+
+网络层
+├── VPN连接
+├── 专线连接
+├── SD-WAN
+└── 云交换
+
+计算层
+├── 虚拟机扩展
+├── 混合容器平台
+└── 边缘计算
+
+存储层
+├── 混合存储网关
+├── 数据分层
+└── 统一文件系统
+
+管理层
+├── 统一身份认证
+├── 统一监控
+├── 统一运维
+└── 统一安全
+```
+
+---
+
+## 2. 混合云网络连接
+
+### 2.1 连接方案对比
+
+| 方案 | 带宽 | 延迟 | 成本 | 安全性 | 适用场景 |
+|-----|------|------|------|--------|---------|
+| VPN | 中 | 高 | 低 | 中 | 小规模、非关键 |
+| 专线 | 高 | 低 | 高 | 高 | 大规模、关键业务 |
+| SD-WAN | 灵活 | 中 | 中 | 中 | 多分支、动态 |
+| 云交换 | 高 | 低 | 中 | 高 | 多云互联 |
+
+### 2.2 VPN配置
+
+```yaml
+aws-vpn-configuration:
+  customer-gateway:
+    bgp-asn: 65000
+    ip-address: 203.0.113.1
+    
+  vpn-gateway:
+    type: ipsec.1
+    availability-zones:
+      - us-east-1a
+      - us-east-1c
+      
+  vpn-connection:
+    type: ipsec.1
+    static-routes-only: false
+    tunnel-options:
+      - outside-ip-address: 52.0.0.1
+        inside-cidr: 169.254.10.0/30
+        pre-shared-key: ${PSK_KEY}
+      - outside-ip-address: 52.0.0.2
+        inside-cidr: 169.254.10.4/30
+        pre-shared-key: ${PSK_KEY}
+        
+  bgp-routing:
+    local-asn: 64512
+    remote-asn: 65000
+    advertised-routes:
+      - 10.0.0.0/16
+```
+
+### 2.3 专线连接
+
+```yaml
+direct-connect-configuration:
+  connection:
+    name: dc-production
+    bandwidth: 10Gbps
+    location: EqDC2
+    
+  virtual-interface:
+    type: private
+    vlan: 101
+    asn: 64512
+    amazon-asn: 7224
+    auth-key: ${BGP_AUTH_KEY}
+    
+  gateway:
+    type: directconnect-gateway
+    allowed-prefixes:
+      - 10.0.0.0/16
+      
+  routing:
+    priority: primary
+    failover: vpn-backup
+```
+
+---
+
+## 3. 混合云存储
+
+### 3.1 存储网关
+
+```
+混合云存储网关架构
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          本地数据中心                                     │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                      存储网关                                     │   │
+│  │  ┌───────────┐  ┌───────────┐  ┌───────────┐                   │   │
+│  │  │ 文件网关   │  │ 卷网关     │  │ 磁带网关   │                   │   │
+│  │  │ (NFS/SMB) │  │ (iSCSI)   │  │ (VTL)     │                   │   │
+│  │  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘                   │   │
+│  │        │              │              │                          │   │
+│  │  ┌─────┴─────┐  ┌─────┴─────┐  ┌─────┴─────┐                   │   │
+│  │  │ 本地缓存   │  │ 本地缓存   │  │ 本地缓存   │                   │   │
+│  │  └───────────┘  └───────────┘  └───────────┘                   │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │
+                                    │ 加密传输
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              公有云                                      │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                         S3 / EBS                                 │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 存储网关配置
+
+```yaml
+storage-gateway-configuration:
+  type: file
+  
+  local-storage:
+    cache-size: 500GB
+    upload-buffer: 100GB
+    
+  cloud-storage:
+    bucket: hybrid-storage-bucket
+    storage-class: STANDARD
+    
+  smb-settings:
+    active-directory: corp.example.com
+    file-share-name: shared
+    
+  nfs-settings:
+    export-path: /shared
+    squash: no-root-squash
+    
+  caching:
+    mode: cache-mode
+    refresh-interval: 60
+```
+
+---
+
+## 4. 混合云容器平台
+
+### 4.1 混合Kubernetes架构
+
+```
+混合Kubernetes架构
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        混合Kubernetes控制平面                             │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Rancher / Anthos / OpenShift                  │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │
+            ┌───────────────────────┼───────────────────────┐
+            │                       │                       │
+            ▼                       ▼                       ▼
+    ┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+    │  本地K8s集群   │       │  AWS EKS      │       │  Azure AKS    │
+    │  (On-Premise) │       │               │       │               │
+    │  ┌─────────┐  │       │  ┌─────────┐  │       │  ┌─────────┐  │
+    │  │ Node 1  │  │       │  │ Node 1  │  │       │  │ Node 1  │  │
+    │  │ Node 2  │  │       │  │ Node 2  │  │       │  │ Node 2  │  │
+    │  └─────────┘  │       │  └─────────┘  │       │  └─────────┘  │
+    └───────────────┘       └───────────────┘       └───────────────┘
+```
+
+### 4.2 集群联邦配置
+
+```yaml
+federation-configuration:
+  clusters:
+    - name: onprem-cluster
+      context: onprem-context
+      region: local
+      
+    - name: aws-cluster
+      context: aws-context
+      region: us-east-1
+      
+  placement-policies:
+    - name: data-sovereignty
+      match:
+        labels:
+          data-classification: sensitive
+      placement:
+        clusters:
+          - onprem-cluster
+          
+    - name: global-services
+      match:
+        labels:
+          scope: global
+      placement:
+        clusters:
+          - onprem-cluster
+          - aws-cluster
+        replicas: 2
+```
+
+---
+
+## 5. 混合云身份管理
+
+### 5.1 统一身份架构
+
+```
+混合云身份管理
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        企业身份提供商 (IdP)                               │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Active Directory / LDAP                       │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │
+                                    │ SAML/OIDC
+                                    │
+            ┌───────────────────────┼───────────────────────┐
+            │                       │                       │
+            ▼                       ▼                       ▼
+    ┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+    │  AWS IAM      │       │  Azure AD     │       │  GCP IAM      │
+    │  Identity     │       │  Connect      │       │  Workload     │
+    │  Federation   │       │               │       │  Identity     │
+    └───────────────┘       └───────────────┘       └───────────────┘
+```
+
+### 5.2 身份联合配置
+
+```yaml
+identity-federation:
+  provider: saml
+  
+  idp-configuration:
+    metadata-url: https://idp.example.com/metadata
+    entity-id: https://idp.example.com
+    
+  sp-configuration:
+    aws:
+      role-mapping:
+        - idp-group: AWS-Admins
+          aws-role: arn:aws:iam::123456789012:role/AdminRole
+        - idp-group: AWS-Developers
+          aws-role: arn:aws:iam::123456789012:role/DeveloperRole
+          
+    azure:
+      user-mapping:
+        - on-prem-group: Azure-Users
+          azure-role: Contributor
+```
+
+---
+
+## 6. 实操项目
+
+### 项目：构建混合云架构
+
+```yaml
+hybrid-cloud-architecture:
+  on-premise:
+    datacenter: beijing-dc
+    services:
+      core-database:
+        type: oracle-rac
+        nodes: 3
+        replication: async
+        
+      identity:
+        type: active-directory
+        domain: corp.example.com
+        
+      storage:
+        type: netapp
+        capacity: 100TB
+        
+  cloud:
+    provider: aws
+    region: cn-north-1
+    services:
+      web-tier:
+        type: eks
+        nodes: 5
+        autoscaling:
+          min: 3
+          max: 10
+          
+      cache:
+        type: elasticache-redis
+        nodes: 3
+        
+      storage:
+        type: s3
+        versioning: true
+        
+  connectivity:
+    type: direct-connect
+    bandwidth: 1Gbps
+    backup: vpn
+    
+  identity:
+    federation: saml
+    provider: active-directory
+    mfa: required
+```
+
+---
+
+## 7. 知识检测
+
+### 选择题
+
+1. 混合云最适合什么场景？
+   - A. 全部应用上云
+   - B. 数据本地化要求
+   - C. 完全放弃本地IT
+   - D. 只使用公有云
+
+2. 哪种连接方式安全性最高？
+   - A. 公网VPN
+   - B. 专线
+   - C. SD-WAN
+   - D. 互联网
+
+3. 存储网关的主要作用是什么？
+   - A. 数据加密
+   - B. 本地缓存加速
+   - C. 数据压缩
+   - D. 数据分析
+
+---
+
+## 8. 扩展阅读
+
+- [AWS Hybrid Cloud](https://aws.amazon.com/hybrid/)
+- [Azure Hybrid](https://azure.microsoft.com/solutions/hybrid-cloud-app/)
+- [Google Anthos](https://cloud.google.com/anthos)
+
+---
+
+## 学习进度
+
+- [ ] 理解混合云架构模式
+- [ ] 掌握混合云网络连接
+- [ ] 学会混合云存储方案
+- [ ] 掌握混合云容器平台
+- [ ] 理解混合云身份管理
+- [ ] 完成实操项目
