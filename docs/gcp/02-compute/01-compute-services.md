@@ -1086,6 +1086,429 @@ spec:
 # - name: data
 #   persistentVolumeClaim:
 #     claimName: my-app-pvc
+
+### 3.3.1 Kubernetes调度器深度原理
+
+**调度器是怎么决定把Pod放到哪个节点的？**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Kubernetes调度流程                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+调度器工作流程（5个阶段）：
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  1. 过滤（Filtering）- 淘汰不符合条件的节点                     │
+│     ┌────────────────────────────────────────────────────────┐ │
+│     │  Node1 ✗ → 内存不足                                    │ │
+│     │  Node2 ✓ → 通过所有过滤                                │ │
+│     │  Node3 ✗ → 存在污点（NoSchedule）                      │ │
+│     └────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  2. 评分（Scoring）- 给符合条件的节点打分                       │
+│     ┌────────────────────────────────────────────────────────┐ │
+│     │  Node2: 调度分数 = 8 (资源利用率最均衡)                │ │
+│     │  Node4: 调度分数 = 6 (资源利用率偏低)                   │ │
+│     │  Node5: 调度分数 = 4 (负载较高)                        │ │
+│     └────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  3. 分配（Selection）- 选择分数最高的节点                        │
+│     └── Node2被选中！                                          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+过滤阶段（Predicates）- 常见规则：
+
+┌─────────────────────────────────────────────────────────────────┐
+│  PodFitsResources：节点有足够的CPU和内存                         │
+│  PodFitsHostPorts：请求的端口未被占用                           │
+│  HostName：匹配nodeSelector的hostname                           │
+│  MatchNodeSelector：匹配nodeSelector标签                        │
+│  NoDiskConflict：存储卷无冲突                                   │
+│  NoExecute Taints：节点没有NoExecute污点                       │
+│  PodToleratesNodeTaints：Pod能容忍节点所有污点                 │
+└─────────────────────────────────────────────────────────────────┘
+
+评分阶段（Priorities）- 常见策略：
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SelectorSpreadPriority：同Service的Pod分散到不同节点           │
+│  LeastRequestedPriority：优先分配到负载低的节点                 │
+│  BalancedResourceAllocation：CPU/内存使用率最均衡的节点         │
+│  ImageLocalityPriority：所需镜像已在节点的优先                  │
+│  InterPodAffinityPriority：满足Pod亲和性规则的节点优先         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**节点亲和性与污点 Tolerations - 精细控制调度：**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              节点亲和性（Node Affinity）                        │
+└─────────────────────────────────────────────────────────────────┘
+
+nodeAffinity：控制Pod更愿意被调度到哪些节点
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      # 硬性要求（必须满足）
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - us-central1-a
+            - us-central1-b
+
+      # 软性偏好（尽量满足）
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: node-type
+            operator: In
+            values:
+            - compute-optimized
+
+┌─────────────────────────────────────────────────────────────────┐
+│              污点（Taints）与容忍（Tolerations）                │
+└─────────────────────────────────────────────────────────────────┘
+
+Taints：节点可以"拒绝"普通Pod
+
+# 给节点添加污点
+kubectl taint nodes node1 dedicated=gpu:NoSchedule
+
+# 污点效果：
+# - NoSchedule：拒绝调度（但不驱逐已运行的Pod）
+# - PreferNoSchedule：尽量避免调度
+# - NoExecute：拒绝调度并驱逐已运行的Pod
+
+Tolerations：Pod可以"声明"能容忍某些污点
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-toleration
+spec:
+  containers:
+  - name: gpu-app
+    image: nvidia/cuda:11.0
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "gpu"
+    effect: "NoSchedule"
+```
+
+**Pod亲和性与反亲和性 - 控制Pod分布：**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Pod亲和性（Pod Affinity）                           │
+└─────────────────────────────────────────────────────────────────┘
+
+podAffinity：让Pod"愿意"和某些Pod部署在一起
+
+场景：Web服务器和Redis缓存部署在同一区域（低延迟）
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web-server
+            topologyKey: topology.kubernetes.io/zone
+
+┌─────────────────────────────────────────────────────────────────┐
+│              Pod反亲和性（Pod Anti-Affinity）                   │
+└─────────────────────────────────────────────────────────────────┘
+
+podAntiAffinity：让Pod"不愿意"和某些Pod部署在一起
+
+场景：Web服务器副本分散到不同节点（高可用）
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web-server
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: web
+        image: nginx:1.25
+```
+
+### 3.3.2 Kubernetes网络深度原理
+
+**Pod之间是怎么通信的？**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Kubernetes网络模型                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+K8s网络模型的三大原则：
+├── 1. 每个Pod有唯一IP（Pod IP）
+├── 2. 同一Pod内容器共享该IP（localhost通信）
+└── 3. 所有Pod可以通过该IP直接通信（跨节点也行）
+
+┌─────────────────────────────────────────────────────────────────┐
+│  容器视角看到的网络：                                             │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  Pod (IP: 10.0.1.15)                                    │   │
+│  │                                                          │   │
+│  │  ┌─────────┐    ┌─────────┐    ┌─────────┐             │   │
+│  │  │ nginx   │    │  sidecar│    │  log    │             │   │
+│  │  │ :80     │    │  :8080  │    │  agent  │             │   │
+│  │  └────┬────┘    └────┬────┘    └────┬────┘             │   │
+│  │       │               │               │                    │   │
+│  │       └───────────────┼───────────────┘                    │   │
+│  │                       │                                     │   │
+│  │               ┌───────┴───────┐                             │   │
+│  │               │  pause容器    │ ← 网络命名空间             │   │
+│  │               │  (infra)      │   所有容器加入这个         │   │
+│  │               └───────────────┘   pause容器的网络          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  关键：pause容器是"基础设施容器"，持有一个Pod的网络命名空间     │
+│       所有业务容器共享pause的网络栈                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**CNI插件是如何工作的？**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              CNI插件工作原理                                     │
+└─────────────────────────────────────────────────────────────────┘
+
+CNI（Container Network Interface）= K8s与网络插件的契约
+
+常见CNI插件：
+├── Google VPC CNI（gke-serverless addon）：使用VPC原生网络
+├── Calico：纯三层网络，支持网络策略
+├── Cilium：eBPF驱动，高性能
+├── Flannel：简单overlay网络
+└── Weave Net：去中心化网络
+
+┌─────────────────────────────────────────────────────────────────┐
+│  GKE VPC CNI工作流程：                                           │
+│                                                                  │
+│  1. 节点启动时：                                                 │
+│     └── 每个节点从VPC子网分配一个/24 CIDR块                     │
+│     例：节点A分到10.0.1.0/24，节点B分到10.0.2.0/24              │
+│                                                                  │
+│  2. Pod创建时：                                                 │
+│     └── Kubelet调用CNI插件分配IP                               │
+│     └── 从节点CIDR块中分配一个IP（如10.0.1.15）               │
+│                                                                  │
+│  3. 跨节点通信：                                                 │
+│     └── Pod IP是VPC可路由的                                     │
+│     └── 直接通过VPC网络路由，无需隧道                           │
+│                                                                  │
+│  优势：性能好，延迟低                                            │
+│  劣势：消耗VPC IP地址空间                                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Service是怎么工作的？**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Kubernetes Service原理                              │
+└─────────────────────────────────────────────────────────────────┘
+
+Service为一组Pod提供稳定的虚拟IP（ClusterIP）
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  用户 ──→ Service (10.0.5.1:80) ──→ Pod 10.0.1.15:80           │
+│                  │                          Pod 10.0.1.23:80   │
+│                  │                          Pod 10.0.2.10:80   │
+│                                                                  │
+│  kube-proxy维护这个映射关系                                      │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+kube-proxy的三种模式：
+
+┌─────────────────────────────────────────────────────────────────┐
+│  1. userspace（最早期，不推荐）                                  │
+│     └── 内核空间和用户空间混合转发，性能差                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  2. iptables（默认）                                             │
+│                                                                  │
+│  kube-proxy监听Service和Endpoints变化                           │
+│  更新iptables规则                                                │
+│                                                                  │
+│  例子：Service有3个Pod                                          │
+│                                                                  │
+│  iptables规则：                                                  │
+│  -A KUBE-SERVICES -d 10.0.5.1/32 -p tcp --dport 80 \           │
+│      -j KUBE-SVC-XXXXXXXX                                       │
+│                                                                  │
+│  -A KUBE-SVC-XXXXXXXX -m statistic --mode random \              │
+│      --probability 0.33 -j KUBE-SEP-AAAA                        │
+│  -A KUBE-SVC-XXXXXXXX -m statistic --mode random \              │
+│      --probability 0.50 -j KUBE-SEP-BBBB                        │
+│  -A KUBE-SVC-XXXXXXXX -j KUBE-SEP-CCCC                         │
+│                                                                  │
+│  问题：每次Service变更需要更新整个iptables表                     │
+│       规模大了性能下降                                            │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  3. IPVS（kube-proxy 1.11+）                                    │
+│                                                                  │
+│  IPVS是L4负载均衡器，在内核态工作                                 │
+│  比iptables性能更好                                              │
+│                                                                  │
+│  支持的负载均衡算法：                                            │
+│  ├── rr（轮询）                                                 │
+│  ├── wrr（加权轮询）                                           │
+│  ├── lc（最少连接）                                             │
+│  └── ...                                                        │
+│                                                                  │
+│  GKE默认使用iptables，但可以切换到IPVS                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 3.3.3 Kubernetes RBAC权限管理
+
+**K8s的权限是怎么控制的？**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Kubernetes RBAC模型                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+RBAC三要素：Subject（谁）+ Role（能做什么）+ Resource（对什么资源）
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  Subject（身份）：                                              │
+│  ├── User（用户）- 外部用户（通过证书认证）                     │
+│  ├── ServiceAccount（服务账号）- Pod内使用                     │
+│  └── Group（组）- 多个用户的集合                               │
+│                                                                  │
+│  Resource（资源）：                                            │
+│  ├── pods, services, deployments（核心资源）                   │
+│  ├── nodes, persistentvolumes（集群级资源）                     │
+│  └── namespaces（命名空间级资源）                               │
+│                                                                  │
+│  Verb（动作）：                                                │
+│  ├── get, list, watch（查看）                                  │
+│  ├── create, delete, update（修改）                            │
+│  └── patch, escalate（高级操作）                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+两种Role作用域：
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Role（命名空间级）                                             │
+│                                                                  │
+│  只在定义的命名空间内有效                                        │
+│                                                                  │
+│  apiVersion: rbac.authorization.k8s.io/v1                       │
+│  kind: Role                                                     │
+│  metadata:                                                       │
+│    namespace: production                                        │
+│    name: pod-reader                                             │
+│  rules:                                                         │
+│  - apiGroups: [""]                                             │
+│    resources: ["pods"]                                          │
+│    verbs: ["get", "list", "watch"]                             │
+│                                                                  │
+│  只能读取production命名空间的Pods                               │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  ClusterRole（集群级）                                          │
+│                                                                  │
+│  可以访问集群级资源或所有命名空间的资源                           │
+│                                                                  │
+│  apiVersion: rbac.authorization.k8s.io/v1                       │
+│  kind: ClusterRole                                              │
+│  metadata:                                                       │
+│    name: node-reader                                            │
+│  rules:                                                         │
+│  - apiGroups: [""]                                             │
+│    resources: ["nodes"]                                        │
+│    verbs: ["get", "list", "watch"]                             │
+│                                                                  │
+│  可以读取所有节点的详细信息                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+绑定（Binding）- 关联Subject和Role：
+
+┌─────────────────────────────────────────────────────────────────┐
+│  RoleBinding（命名空间级）                                       │
+│                                                                  │
+│  apiVersion: rbac.authorization.k8s.io/v1                       │
+│  kind: RoleBinding                                               │
+│  metadata:                                                       │
+│    name: read-pods                                              │
+│    namespace: production                                         │
+│  subjects:                                                      │
+│  - kind: User                                                   │
+│    name: alice@example.com                                     │
+│  - kind: ServiceAccount                                         │
+│    name: my-app-sa                                              │
+│    namespace: default                                           │
+│  roleRef:                                                      │
+│    kind: Role                                                   │
+│    name: pod-reader                                             │
+│                                                                  │
+│  alice用户和default命名空间的my-app-sa可以使用pod-reader角色    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.4 常用kubectl命令速查
