@@ -21,6 +21,8 @@ kubernetes-specification/
 ├── 10-troubleshooting.md              # Kubernetes常见错误处理
 ├── 11-kubectl-config.md               # kubectl配置详解
 ├── 12-operator.md                     # Kubernetes Operator开发
+├── 13-extending-kubernetes.md        # Kubernetes定制与扩展
+├── 14-kubectl-commands.md            # kubectl命令详解
 ├── VERIFICATION.md                     # 代码验证说明
 ├── verify-code.ps1                     # Windows验证脚本
 └── verify-code.sh                      # Linux/macOS验证脚本
@@ -349,6 +351,59 @@ kubernetes-specification/
 - Controller实现
 - Webhook配置
 - MySQL Operator
+
+### 13. Kubernetes定制与扩展
+
+**内容概览：**
+- Kubernetes扩展点概述
+- API Server Aggregation
+- CRD vs Aggregated API
+- Scheduler Framework
+- CNI网络扩展
+- CSI存储扩展
+- Device Plugin
+- 实战：定制Kubernetes集群
+
+**学习目标：**
+- 理解Kubernetes扩展架构设计
+- 掌握API层扩展方法
+- 学会调度器扩展
+- 理解CNI/CSI接口
+- 掌握Device Plugin开发
+
+**代码示例：**
+- APIService配置
+- 自定义调度器
+- CNI插件
+- CSI插件
+- Device Plugin
+
+### 14. kubectl命令详解
+
+**内容概览：**
+- kubectl命令结构和语法
+- 输出格式详解
+- Pod管理命令
+- Deployment管理命令
+- Service管理命令
+- Ingress管理命令
+- ConfigMap和Secret命令
+- 存储管理命令
+- 集群管理命令
+- 调试和排错命令
+
+**学习目标：**
+- 掌握kubectl命令结构
+- 熟练使用常用命令
+- 学会输出格式化
+- 掌握调试技巧
+- 提高工作效率
+
+**代码示例：**
+- 基础命令示例
+- 资源操作示例
+- 调试命令示例
+- 高级命令示例
 
 ## 学习路径
 
