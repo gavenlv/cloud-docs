@@ -14,11 +14,13 @@ kubernetes-specification/
 ├── 03-deployment-replicaset.md         # Deployment和ReplicaSet
 ├── 04-service-ingress.md               # Service和Ingress
 ├── 05-configmap-secret.md              # ConfigMap和Secret
-├── 06-persistent-volume.md             # PersistentVolume和PersistentVolumeClaim
+├── 06-persistent-volume.md              # PersistentVolume和PersistentVolumeClaim
 ├── 07-statefulset-daemonset.md        # StatefulSet和DaemonSet
 ├── 08-helm-package-manager.md          # Helm包管理
 ├── 09-best-practices.md                # Kubernetes最佳实践
 ├── 10-troubleshooting.md              # Kubernetes常见错误处理
+├── 11-kubectl-config.md               # kubectl配置详解
+├── 12-operator.md                     # Kubernetes Operator开发
 ├── VERIFICATION.md                     # 代码验证说明
 ├── verify-code.ps1                     # Windows验证脚本
 └── verify-code.sh                      # Linux/macOS验证脚本
@@ -268,6 +270,85 @@ kubernetes-specification/
 - 网络问题诊断
 - 存储问题解决
 - 集群问题排查
+
+### 11. kubectl配置详解
+
+**内容概览：**
+- kubectl工作原理
+- kubeconfig配置结构
+- kubeconfig加载机制
+- 多集群配置
+- 证书认证原理
+- Token认证原理
+- OIDC认证原理
+- kubectl别名和自动补全
+- 常见配置问题
+
+**学习目标：**
+- 理解kubectl的定位和工作原理
+- 掌握kubeconfig配置结构
+- 学会多集群配置
+- 了解各种认证机制
+- 掌握kubectl高效配置
+
+**代码示例：**
+- kubeconfig配置
+- 多集群配置
+- kubectl别名配置
+- 自动补全配置
+- 常见问题排查
+
+### 11. kubectl配置详解
+
+**内容概览：**
+- kubectl工作原理
+- kubeconfig配置结构
+- kubeconfig加载机制
+- 多集群配置
+- 证书认证原理
+- Token认证原理
+- OIDC认证原理
+- kubectl别名和自动补全
+- 常见配置问题
+
+**学习目标：**
+- 理解kubectl的定位和工作原理
+- 掌握kubeconfig配置结构
+- 学会多集群配置
+- 了解各种认证机制
+- 掌握kubectl高效配置
+
+**代码示例：**
+- kubeconfig配置
+- 多集群配置
+- kubectl别名配置
+- 自动补全配置
+- 常见问题排查
+
+### 12. Kubernetes Operator开发
+
+**内容概览：**
+- Operator设计理念
+- CRD机制原理
+- 控制器模式原理
+- Reconcile协调循环
+- kubebuilder框架
+- Webhook机制
+- MySQL Operator实战
+- 最佳实践
+
+**学习目标：**
+- 理解Operator的核心原理
+- 掌握CRD开发方法
+- 学会使用kubebuilder开发Operator
+- 理解Webhook机制
+- 掌握生产级Operator开发
+
+**代码示例：**
+- CRD定义
+- Controller实现
+- Webhook配置
+- MySQL Operator
 
 ## 学习路径
 
