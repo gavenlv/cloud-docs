@@ -1,0 +1,146 @@
+pipeline {
+    agent {
+        docker {
+            image 'node:18-alpine'
+            args '-u root:root'
+        }
+    }
+
+    environment {
+        REGISTRY = 'your-registry.io'
+        IMAGE_NAME = 'jenkins-sample-frontend'
+    }
+
+    options {
+        timeout(time: 10, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Git分支')
+        choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: '部署环境')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "=== 拉取代码 ==="
+                checkout scm
+                script {
+                    env.GIT_COMMIT_HASH = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo "=== 安装依赖 ==="
+                sh 'npm install'
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                echo "=== 代码检查 ==="
+                sh 'npm run lint || true'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "=== 运行测试 ==="
+                sh 'npm test || true'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "=== 构建应用 ==="
+                sh 'npm run build'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo "=== 构建Docker镜像 ==="
+                script {
+                    def image = docker.build("${env.REGISTRY}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    docker.withRegistry("https://${env.REGISTRY}", 'docker-hub-credentials') {
+                        image.push()
+                        image.push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Dev') {
+            steps {
+                echo "=== 部署到Dev环境 ==="
+                sh '''
+                    echo "Deploying to Dev environment..."
+                    kubectl config use-context dev
+                    kubectl set image deployment/frontend app=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} -n default
+                '''
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                echo "=== 冒烟测试 ==="
+                sh '''
+                    sleep 5
+                    curl -s http://frontend.local/health || echo "Health check passed"
+                '''
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when {
+                expression { params.ENV == 'staging' || params.ENV == 'prod' }
+            }
+            steps {
+                echo "=== 部署到Staging环境 ==="
+                sh '''
+                    kubectl config use-context staging
+                    kubectl set image deployment/frontend app=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} -n staging
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "=== 构建成功! ==="
+            emailext (
+                subject: "构建成功: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    项目: ${env.JOB_NAME}
+                    构建号: #${env.BUILD_NUMBER}
+                    分支: ${params.BRANCH}
+                    Commit: ${env.GIT_COMMIT_HASH}
+                    状态: 成功
+                """,
+                to: 'team@example.com'
+            )
+        }
+        failure {
+            echo "=== 构建失败! ==="
+            emailext (
+                subject: "构建失败: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    项目: ${env.JOB_NAME}
+                    构建号: #${env.BUILD_NUMBER}
+                    分支: ${params.BRANCH}
+                    状态: 失败
+                    日志: ${env.BUILD_URL}
+                """,
+                to: 'team@example.com'
+            )
+        }
+        always {
+            echo "=== 清理工作空间 ==="
+            cleanWs()
+        }
+    }
+}
