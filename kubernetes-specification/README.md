@@ -8,610 +8,368 @@
 
 ```
 kubernetes-specification/
-├── README.md                           # 本文件
-├── 01-fundamentals.md                  # Kubernetes基础和核心原理
-├── 02-pod-management.md                # Pod管理
-├── 03-deployment-replicaset.md         # Deployment和ReplicaSet
-├── 04-service-ingress.md               # Service和Ingress
-├── 05-configmap-secret.md              # ConfigMap和Secret
-├── 06-persistent-volume.md              # PersistentVolume和PersistentVolumeClaim
-├── 07-statefulset-daemonset.md        # StatefulSet和DaemonSet
-├── 08-helm-package-manager.md          # Helm包管理
-├── 09-best-practices.md                # Kubernetes最佳实践
-├── 10-troubleshooting.md              # Kubernetes常见错误处理
-├── 11-kubectl-config.md               # kubectl配置详解
-├── 12-operator.md                     # Kubernetes Operator开发
-├── 13-extending-kubernetes.md        # Kubernetes定制与扩展
-├── 14-kubectl-commands.md            # kubectl命令详解
-├── VERIFICATION.md                     # 代码验证说明
-├── verify-code.ps1                     # Windows验证脚本
-└── verify-code.sh                      # Linux/macOS验证脚本
+├── README.md                              # 本文件
+├── 01-fundamentals/                       # Kubernetes基础和核心原理
+│   └── 01-fundamentals.md
+├── 02-pod-management/                     # Pod管理
+│   ├── 02-pod-management.md
+│   └── codes/
+│       ├── pod-basic.yaml                 # ✅ 已验证
+│       ├── pod-health-checks.yaml
+│       ├── pod-multi-container.yaml
+│       ├── pod-node-affinity.yaml
+│       ├── pod-node-selector.yaml
+│       ├── pod-pod-affinity.yaml
+│       ├── pod-resources.yaml
+│       └── pod-taint-toleration.yaml
+├── 03-deployment-replicaset/              # Deployment和ReplicaSet
+│   ├── 03-deployment-replicaset.md
+│   └── codes/
+│       ├── deployment-basic.yaml           # ✅ 已验证
+│       ├── deployment-blue-green.yaml
+│       ├── deployment-canary.yaml
+│       └── deployment-rolling-update.yaml
+├── 04-service-ingress/                    # Service和Ingress
+│   ├── 04-service-ingress.md
+│   └── codes/
+│       ├── ingress-auth.yaml
+│       ├── ingress-hostname.yaml
+│       ├── ingress-path.yaml
+│       ├── ingress-rate-limit.yaml
+│       ├── service-clusterip.yaml         # ✅ 已验证
+│       ├── service-externalname.yaml
+│       ├── service-loadbalancer.yaml
+│       └── service-nodeport.yaml
+├── 05-configmap-secret/                   # ConfigMap和Secret
+│   ├── 05-configmap-secret.md
+│   └── codes/
+│       ├── configmap-basic.yaml            # ✅ 已验证
+│       ├── configmap-files.yaml
+│       ├── pod-configmap-env.yaml
+│       ├── pod-configmap-volume.yaml
+│       ├── pod-secret-env.yaml
+│       ├── pod-secret-volume.yaml
+│       ├── secret-basic.yaml               # ✅ 已验证
+│       ├── secret-dockerconfig.yaml
+│       └── secret-tls.yaml
+├── 06-persistent-volume/                  # PersistentVolume和PersistentVolumeClaim
+│   ├── 06-persistent-volume.md
+│   └── codes/
+│       ├── pod-pvc.yaml
+│       ├── pv-aws-ebs.yaml
+│       ├── pv-gce-pd.yaml
+│       ├── pv-local.yaml
+│       ├── pv-nfs.yaml
+│       ├── pvc-basic.yaml
+│       ├── pvc-block.yaml
+│       ├── pvc-dynamic.yaml
+│       ├── pvc-readonly.yaml
+│       ├── storageclass-aws-ebs.yaml
+│       ├── storageclass-gce-pd.yaml
+│       ├── storageclass-local.yaml
+│       └── storageclass-nfs.yaml
+├── 07-statefulset-daemonset/              # StatefulSet和DaemonSet
+│   ├── 07-statefulset-daemonset.md
+│   └── codes/
+│       ├── daemonset-basic.yaml
+│       ├── daemonset-node-selector.yaml
+│       ├── daemonset-taint-toleration.yaml
+│       ├── service-headless.yaml
+│       ├── statefulset-basic.yaml
+│       └── statefulset-partition.yaml
+├── 08-helm-package-manager/               # Helm包管理
+│   ├── 08-helm-package-manager.md
+│   └── codes/
+│       ├── deployment.yaml
+│       ├── values.yaml
+│       ├── myapp/                         # 完整Chart示例
+│       └── myshop/                        # 电商应用Chart
+├── 09-best-practices/                    # Kubernetes最佳实践
+│   └── 09-best-practices.md
+├── 10-troubleshooting/                    # Kubernetes常见错误处理
+│   └── 10-troubleshooting.md
+├── 11-kubectl-config/                    # kubectl配置详解
+│   ├── 11-kubectl-config.md
+│   └── codes/
+│       └── yaml-1.yaml
+├── 12-Kubernetes-Dashboard/              # Kubernetes Dashboard部署
+│   ├── 12-Kubernetes-Dashboard.md
+│   └── dashboard-adminuser.yaml
+├── 12-operator/                          # Kubernetes Operator开发
+│   ├── 12-operator.md
+│   └── codes/
+│       ├── crd.yaml
+│       └── webhook.yaml
+├── 13-extending-kubernetes/               # Kubernetes定制与扩展
+│   ├── 13-extending-kubernetes.md
+│   └── codes/
+│       ├── apiservice.yaml
+│       ├── custom-resource.yaml
+│       ├── custom-scheduler.yaml
+│       ├── network-policy.yaml
+│       └── scheduler-config.yaml
+├── 14-kubectl-commands/                   # kubectl命令详解
+│   ├── 14-kubectl-commands.md
+│   └── codes/
+│       └── ingress.yaml
+├── VERIFICATION.md                        # 代码验证说明
+├── verify-kubectl-config.ps1              # kubectl配置验证脚本
+├── verify-kubectl-config.sh
+└── verify-operator.ps1                     # Operator验证脚本
+└── verify-operator.sh
 ```
 
-## 章节内容
+## 快速开始
 
-### 01. Kubernetes基础和核心原理
+### 1. 运行单个YAML文件
 
-**内容概览：**
-- Kubernetes架构和核心组件
-- 控制平面和数据平面
-- API Server原理
-- etcd存储原理
-- Scheduler调度原理
-- Controller Manager原理
-- Kubelet原理
-- Kube-proxy原理
-- 实战：搭建Kubernetes集群
+```bash
+# 运行Pod示例
+kubectl apply -f 02-pod-management/codes/pod-basic.yaml
 
-**学习目标：**
-- 理解Kubernetes的核心概念
-- 掌握Kubernetes架构
-- 了解控制平面组件
-- 了解数据平面组件
-- 学会搭建Kubernetes集群
+# 查看Pod状态
+kubectl get pods
 
-**代码示例：**
-- 使用Minikube搭建集群
-- 使用kubeadm搭建集群
-- 集群验证
-- 节点管理
+# 删除Pod
+kubectl delete -f 02-pod-management/codes/pod-basic.yaml
+```
 
-### 02. Pod管理
+### 2. 批量运行章节示例
 
-**内容概览：**
-- Pod原理和生命周期
-- Pod配置和调度
-- Pod资源限制
-- Pod健康检查
-- Pod网络和存储
-- 实战：部署Pod
+```bash
+# 进入章节目录
+cd 02-pod-management/codes
 
-**学习目标：**
-- 理解Pod的核心概念
-- 掌握Pod生命周期
-- 学会Pod配置
-- 了解Pod调度
-- 掌握Pod资源管理
+# 运行所有Pod示例
+for file in *.yaml; do kubectl apply -f $file; done
 
-**代码示例：**
-- 创建Pod
-- Pod资源限制
-- Pod健康检查
-- Pod网络配置
-- Pod存储配置
+# 查看所有Pod
+kubectl get pods
 
-### 03. Deployment和ReplicaSet
+# 清理所有Pod
+for file in *.yaml; do kubectl delete -f $file; done
+```
 
-**内容概览：**
-- Deployment原理
-- ReplicaSet原理
-- 滚动更新
-- 回滚策略
-- 扩缩容
-- 实战：部署应用
+### 3. 验证部署
 
-**学习目标：**
-- 理解Deployment核心概念
-- 掌握ReplicaSet原理
-- 学会滚动更新
-- 了解回滚策略
-- 掌握扩缩容
+```bash
+# 检查资源状态
+kubectl get all
 
-**代码示例：**
-- 创建Deployment
-- 滚动更新
-- 回滚Deployment
-- 扩缩容
-- 金丝雀发布
+# 查看资源详情
+kubectl describe <resource-type> <resource-name>
 
-### 04. Service和Ingress
+# 查看日志
+kubectl logs <pod-name>
+```
 
-**内容概览：**
-- Service原理
-- Service类型
-- Ingress原理
-- Ingress Controller
-- 负载均衡
-- 实战：配置服务发现
+## 章节运行指南
 
-**学习目标：**
-- 理解Service核心概念
-- 掌握Service类型
-- 学会Ingress配置
-- 了解负载均衡
-- 掌握服务发现
+### 02-pod-management - Pod管理
 
-**代码示例：**
-- 创建Service
-- 配置Ingress
-- 负载均衡
-- 服务发现
-- 网络策略
+**运行命令：**
+```bash
+kubectl apply -f 02-pod-management/codes/pod-basic.yaml
+kubectl apply -f 02-pod-management/codes/pod-health-checks.yaml
+```
 
-### 05. ConfigMap和Secret
+**验证命令：**
+```bash
+kubectl get pods
+kubectl describe pod <pod-name>
+kubectl logs <pod-name>
+```
 
-**内容概览：**
-- ConfigMap原理
-- Secret原理
-- 配置管理
-- 敏感数据管理
-- 配置注入
-- 实战：配置管理
+**清理命令：**
+```bash
+kubectl delete -f 02-pod-management/codes/pod-basic.yaml
+kubectl delete -f 02-pod-management/codes/pod-health-checks.yaml
+```
 
-**学习目标：**
-- 理解ConfigMap核心概念
-- 掌握Secret原理
-- 学会配置管理
-- 了解敏感数据管理
-- 掌握配置注入
+### 03-deployment-replicaset - Deployment管理
 
-**代码示例：**
-- 创建ConfigMap
-- 创建Secret
-- 配置注入
-- 环境变量配置
-- 配置文件挂载
+**运行命令：**
+```bash
+kubectl apply -f 03-deployment-replicaset/codes/deployment-basic.yaml
+```
 
-### 06. PersistentVolume和PersistentVolumeClaim
+**验证命令：**
+```bash
+kubectl get deployments
+kubectl get replicasets
+kubectl get pods
+kubectl rollout status deployment/nginx-deployment
+```
 
-**内容概览：**
-- PersistentVolume原理
-- PersistentVolumeClaim原理
-- 存储类
-- 动态供应
-- 存储回收策略
-- 实战：数据持久化
+**清理命令：**
+```bash
+kubectl delete -f 03-deployment-replicaset/codes/deployment-basic.yaml
+```
 
-**学习目标：**
-- 理解PersistentVolume核心概念
-- 掌握PersistentVolumeClaim原理
-- 学会存储类配置
-- 了解动态供应
-- 掌握存储管理
+### 04-service-ingress - Service配置
 
-**代码示例：**
-- 创建PersistentVolume
-- 创建PersistentVolumeClaim
-- 配置存储类
-- 动态供应
-- 数据持久化
+**运行命令：**
+```bash
+kubectl apply -f 03-deployment-replicaset/codes/deployment-basic.yaml
+kubectl apply -f 04-service-ingress/codes/service-clusterip.yaml
+```
 
-### 07. StatefulSet和DaemonSet
+**验证命令：**
+```bash
+kubectl get services
+kubectl get endpoints
+curl http://<service-clusterip>:80
+```
 
-**内容概览：**
-- StatefulSet原理
-- DaemonSet原理
-- 有状态应用部署
-- 守护进程部署
-- 网络标识
-- 实战：部署有状态应用
+**清理命令：**
+```bash
+kubectl delete -f 04-service-ingress/codes/service-clusterip.yaml
+kubectl delete -f 03-deployment-replicaset/codes/deployment-basic.yaml
+```
 
-**学习目标：**
-- 理解StatefulSet核心概念
-- 掌握DaemonSet原理
-- 学会有状态应用部署
-- 了解守护进程部署
-- 掌握网络标识
+### 05-configmap-secret - 配置管理
 
-**代码示例：**
-- 创建StatefulSet
-- 创建DaemonSet
-- 有状态应用部署
-- 守护进程部署
-- 网络标识配置
+**运行命令：**
+```bash
+kubectl apply -f 05-configmap-secret/codes/configmap-basic.yaml
+kubectl apply -f 05-configmap-secret/codes/secret-basic.yaml
+```
 
-### 08. Helm包管理
+**验证命令：**
+```bash
+kubectl get configmaps
+kubectl get secrets
+kubectl describe configmap app-config
+kubectl get configmap app-config -o yaml
+```
 
-**内容概览：**
-- Helm原理
-- Chart结构
-- 模板引擎
-- Values文件
-- 依赖管理
-- 实战：使用Helm部署应用
+**清理命令：**
+```bash
+kubectl delete -f 05-configmap-secret/codes/configmap-basic.yaml
+kubectl delete -f 05-configmap-secret/codes/secret-basic.yaml
+```
 
-**学习目标：**
-- 理解Helm核心概念
-- 掌握Chart结构
-- 学会模板引擎
-- 了解Values文件
-- 掌握依赖管理
+### 07-statefulset-daemonset - 有状态应用
 
-**代码示例：**
-- 创建Chart
-- 编写模板
-- 配置Values
-- 安装Chart
-- 升级和回滚
+**运行命令：**
+```bash
+kubectl apply -f 07-statefulset-daemonset/codes/service-headless.yaml
+kubectl apply -f 07-statefulset-daemonset/codes/statefulset-basic.yaml
+```
 
-### 09. Kubernetes最佳实践
+**验证命令：**
+```bash
+kubectl get statefulsets
+kubectl get pods -l app=web
+kubectl describe statefulset web
+```
 
-**内容概览：**
-- 资源管理最佳实践
-- 安全最佳实践
-- 网络最佳实践
-- 存储最佳实践
-- 监控和日志
-- CI/CD集成
+**清理命令：**
+```bash
+kubectl delete -f 07-statefulset-daemonset/codes/statefulset-basic.yaml
+kubectl delete -f 07-statefulset-daemonset/codes/service-headless.yaml
+```
 
-**学习目标：**
-- 掌握资源管理技巧
-- 了解安全最佳实践
-- 学会网络优化
-- 掌握存储优化
-- 了解监控和日志
-- 学会CI/CD集成
+### 12-Kubernetes-Dashboard - Dashboard部署
 
-**代码示例：**
-- 资源配额
-- 网络策略
-- 存储策略
-- 监控配置
-- CI/CD流程
+**部署命令：**
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl apply -f 12-Kubernetes-Dashboard/dashboard-adminuser.yaml
+```
 
-### 10. Kubernetes常见错误处理
+**获取访问令牌：**
+```bash
+kubectl create token admin-user -n kubernetes-dashboard
+```
 
-**内容概览：**
-- Pod启动失败
-- 调度失败
-- 网络连接问题
-- 存储访问问题
-- 集群问题
-- 调试技巧
+**启动代理：**
+```bash
+kubectl proxy
+```
 
-**学习目标：**
-- 掌握常见错误处理方法
-- 学会Pod启动失败排查
-- 了解调度失败诊断
-- 掌握网络问题解决
-- 学会存储问题处理
+**访问Dashboard：**
+```
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+```
 
-**代码示例：**
-- Pod启动失败处理
-- 调度失败排查
-- 网络问题诊断
-- 存储问题解决
-- 集群问题排查
+**清理命令：**
+```bash
+kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+```
 
-### 11. kubectl配置详解
+## 代码验证状态
 
-**内容概览：**
-- kubectl工作原理
-- kubeconfig配置结构
-- kubeconfig加载机制
-- 多集群配置
-- 证书认证原理
-- Token认证原理
-- OIDC认证原理
-- kubectl别名和自动补全
-- 常见配置问题
-
-**学习目标：**
-- 理解kubectl的定位和工作原理
-- 掌握kubeconfig配置结构
-- 学会多集群配置
-- 了解各种认证机制
-- 掌握kubectl高效配置
-
-**代码示例：**
-- kubeconfig配置
-- 多集群配置
-- kubectl别名配置
-- 自动补全配置
-- 常见问题排查
-
-### 11. kubectl配置详解
-
-**内容概览：**
-- kubectl工作原理
-- kubeconfig配置结构
-- kubeconfig加载机制
-- 多集群配置
-- 证书认证原理
-- Token认证原理
-- OIDC认证原理
-- kubectl别名和自动补全
-- 常见配置问题
-
-**学习目标：**
-- 理解kubectl的定位和工作原理
-- 掌握kubeconfig配置结构
-- 学会多集群配置
-- 了解各种认证机制
-- 掌握kubectl高效配置
-
-**代码示例：**
-- kubeconfig配置
-- 多集群配置
-- kubectl别名配置
-- 自动补全配置
-- 常见问题排查
-
-### 12. Kubernetes Operator开发
-
-**内容概览：**
-- Operator设计理念
-- CRD机制原理
-- 控制器模式原理
-- Reconcile协调循环
-- kubebuilder框架
-- Webhook机制
-- MySQL Operator实战
-- 最佳实践
-
-**学习目标：**
-- 理解Operator的核心原理
-- 掌握CRD开发方法
-- 学会使用kubebuilder开发Operator
-- 理解Webhook机制
-- 掌握生产级Operator开发
-
-**代码示例：**
-- CRD定义
-- Controller实现
-- Webhook配置
-- MySQL Operator
-
-### 13. Kubernetes定制与扩展
-
-**内容概览：**
-- Kubernetes扩展点概述
-- API Server Aggregation
-- CRD vs Aggregated API
-- Scheduler Framework
-- CNI网络扩展
-- CSI存储扩展
-- Device Plugin
-- 实战：定制Kubernetes集群
-
-**学习目标：**
-- 理解Kubernetes扩展架构设计
-- 掌握API层扩展方法
-- 学会调度器扩展
-- 理解CNI/CSI接口
-- 掌握Device Plugin开发
-
-**代码示例：**
-- APIService配置
-- 自定义调度器
-- CNI插件
-- CSI插件
-- Device Plugin
-
-### 14. kubectl命令详解
-
-**内容概览：**
-- kubectl命令结构和语法
-- 输出格式详解
-- Pod管理命令
-- Deployment管理命令
-- Service管理命令
-- Ingress管理命令
-- ConfigMap和Secret命令
-- 存储管理命令
-- 集群管理命令
-- 调试和排错命令
-
-**学习目标：**
-- 掌握kubectl命令结构
-- 熟练使用常用命令
-- 学会输出格式化
-- 掌握调试技巧
-- 提高工作效率
-
-**代码示例：**
-- 基础命令示例
-- 资源操作示例
-- 调试命令示例
-- 高级命令示例
+| 章节 | 文件 | 状态 |
+|------|------|------|
+| 02-pod-management | pod-basic.yaml | ✅ 已验证 |
+| 03-deployment-replicaset | deployment-basic.yaml | ✅ 已验证 |
+| 04-service-ingress | service-clusterip.yaml | ✅ 已验证 |
+| 05-configmap-secret | configmap-basic.yaml | ✅ 已验证 |
+| 05-configmap-secret | secret-basic.yaml | ✅ 已验证 |
 
 ## 学习路径
 
 ### 初级路径
 
-1. 阅读 [01-fundamentals.md](./01-fundamentals.md)
-2. 完成基础实战练习
-3. 阅读 [02-pod-management.md](./02-pod-management.md)
-4. 完成Pod管理练习
+1. [02-pod-management](./02-pod-management/) - 掌握Pod管理
+2. [03-deployment-replicaset](./03-deployment-replicaset/) - 掌握Deployment管理
+3. [04-service-ingress](./04-service-ingress/) - 实现服务发现
 
 ### 中级路径
 
-1. 完成 [03-deployment-replicaset.md](./03-deployment-replicaset.md)
-2. 掌握Deployment管理
-3. 完成 [04-service-ingress.md](./04-service-ingress.md)
-4. 实现服务发现
+1. [05-configmap-secret](./05-configmap-secret/) - 掌握配置管理
+2. [06-persistent-volume](./06-persistent-volume/) - 实现数据持久化
+3. [07-statefulset-daemonset](./07-statefulset-daemonset/) - 掌握有状态应用
 
 ### 高级路径
 
-1. 学习 [05-configmap-secret.md](./05-configmap-secret.md)
-2. 掌握配置管理
-3. 学习 [06-persistent-volume.md](./06-persistent-volume.md)
-4. 实现数据持久化
-
-### 专家路径
-
-1. 深入学习 [07-statefulset-daemonset.md](./07-statefulset-daemonset.md)
-2. 掌握有状态应用部署
-3. 学习 [08-helm-package-manager.md](./08-helm-package-manager.md)
-4. 掌握Helm包管理
-5. 学习 [09-best-practices.md](./09-best-practices.md)
-6. 实施最佳实践
-7. 学习 [10-troubleshooting.md](./10-troubleshooting.md)
-8. 掌握常见错误处理
-9. 构建生产级Kubernetes应用
-10. 集成CI/CD流程
+1. [08-helm-package-manager](./08-helm-package-manager/) - 掌握Helm包管理
+2. [11-kubectl-config](./11-kubectl-config/) - 精通kubectl配置
+3. [12-operator](./12-operator/) - 开发Kubernetes Operator
+4. [13-extending-kubernetes](./13-extending-kubernetes/) - 扩展Kubernetes
 
 ## 前置要求
-
-### 必备知识
-
-- 基本的Linux命令行操作
-- 基本的Docker知识
-- 基本的容器化概念
-- 基本的云计算概念
 
 ### 必备工具
 
 - kubectl >= 1.24
-- Docker >= 20.10
-- Minikube 或 Kind（本地开发）
+- Docker Desktop (已启用Kubernetes) 或 Minikube/Kind
 - Git
-- 文本编辑器（VS Code推荐）
 
 ### 可选工具
 
 - Helm >= 3.0
-- k9s（集群管理）
-- Lens（集群可视化）
-- GitHub/GitLab账户（用于CI/CD）
-
-## 快速开始
-
-### 安装kubectl
-
-```bash
-# macOS
-brew install kubectl
-
-# Linux
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
-# Windows
-# 从 https://kubernetes.io/docs/tasks/tools/ 下载安装程序
-```
-
-### 安装Minikube
-
-```bash
-# macOS
-brew install minikube
-
-# Linux
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-
-# Windows
-# 从 https://minikube.sigs.k8s.io/docs/start/ 下载安装程序
-```
-
-### 启动集群
-
-```bash
-# 启动Minikube集群
-minikube start
-
-# 验证集群状态
-kubectl cluster-info
-
-# 查看节点
-kubectl get nodes
-
-# 查看Pod
-kubectl get pods --all-namespaces
-```
-
-### 部署第一个应用
-
-```bash
-# 创建Deployment
-kubectl create deployment hello-world --image=nginx:latest
-
-# 暴露服务
-kubectl expose deployment hello-world --port=80 --type=NodePort
-
-# 查看服务
-kubectl get services
-
-# 访问应用
-minikube service hello-world
-
-# 删除资源
-kubectl delete deployment hello-world
-kubectl delete service hello-world
-```
-
-## 代码验证
-
-所有代码示例都经过验证，确保可以正常运行。每个章节都包含：
-
-- 完整的代码示例
-- 详细的注释说明
-- 执行步骤说明
-- 预期输出结果
-
-### 验证步骤
-
-1. 复制代码示例到本地文件
-2. 根据实际情况修改配置（如镜像名称、资源限制等）
-3. 运行 `kubectl apply -f <file>` 应用配置
-4. 运行 `kubectl get <resource>` 查看资源状态
-5. 验证资源创建成功
-6. 清理资源
+- k9s (终端UI)
+- Lens (可视化IDE)
 
 ## 常见问题
 
-### Q: 如何获取Kubernetes版本？
+### Q: Pod一直处于ContainerCreating状态？
 
-A: 运行 `kubectl version --short` 查看Kubernetes版本。
+A: 检查是否缺少必需的ConfigMap或Secret：
+```bash
+kubectl describe pod <pod-name>
+# 查看Events中的错误信息
+```
 
-### Q: 如何查看集群状态？
+### Q: 如何查看所有命名空间的资源？
 
-A: 运行 `kubectl cluster-info` 查看集群信息，运行 `kubectl get nodes` 查看节点状态。
+```bash
+kubectl get pods -A
+kubectl get services -A
+```
 
-### Q: 如何查看Pod日志？
+### Q: 如何进入Pod内部调试？
 
-A: 运行 `kubectl logs <pod-name>` 查看Pod日志。
-
-### Q: 如何进入Pod？
-
-A: 运行 `kubectl exec -it <pod-name> -- /bin/bash` 进入Pod。
-
-### Q: 如何处理Pod启动失败？
-
-A: 首先查看Pod状态 `kubectl describe pod <pod-name>`，然后查看Pod日志 `kubectl logs <pod-name>`。详细信息请参考第10章。
-
-### Q: 如何扩缩容Deployment？
-
-A: 运行 `kubectl scale deployment <deployment-name> --replicas=<number>` 扩缩容Deployment。
+```bash
+kubectl exec -it <pod-name> -- /bin/sh
+```
 
 ## 贡献指南
 
-欢迎贡献代码、提出建议或报告问题。请遵循以下步骤：
-
-1. Fork本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启Pull Request
+欢迎贡献代码、提出建议或报告问题。
 
 ## 许可证
 
-本专题采用MIT许可证。详情请参阅LICENSE文件。
-
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- 提交Issue
-- 发送邮件至：your.email@example.com
-
-## 参考资料
-
-- [Kubernetes官方文档](https://kubernetes.io/docs/)
-- [kubectl命令参考](https://kubernetes.io/docs/reference/generated/kubectl/)
-- [Helm官方文档](https://helm.sh/docs/)
-- [Kubernetes最佳实践](https://kubernetes.io/docs/concepts/configuration/overview/)
-
-## 更新日志
-
-### v1.0.0 (2024-01-15)
-
-- 初始版本发布
-- 包含10个完整章节
-- 所有代码示例经过验证
-- 提供详细的实战案例
-
----
-
-**祝学习愉快！**
+MIT License
