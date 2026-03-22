@@ -1,6 +1,21 @@
+# Kubernetes API 版本
+# 可选值: v1, apps/v1, apps/v1beta1, apps/v1beta2, batch/v1 等
 apiVersion: v1
+
+# 资源类型
+# 可选值: Namespace, Pod, Service, Deployment, ConfigMap, Secret, etc.
 kind: Namespace
+
+# 元数据 - 描述资源的基本信息
 metadata:
+  # 资源名称 - 必须唯一
+  # 命名规范: 小写字母、数字、连字符(-)
+  # 示例: jenkins, my-app, web-server
   name: jenkins
+
+  # 标签 - 用于资源分组和选择
+  # 格式: key:value, key 必须是字母或数字，可包含 - _ . 
   labels:
+    # 标签键值对
+    # 示例: name: jenkins, environment: dev, team: backend
     name: jenkins

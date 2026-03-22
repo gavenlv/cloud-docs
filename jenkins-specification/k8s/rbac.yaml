@@ -1,35 +1,155 @@
+# ===========================================
+# ServiceAccount - 服务账户
+# 用于 Pod 访问 Kubernetes API
+# ===========================================
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型 - 服务账户
+# 可选值: ServiceAccount, Token, etc.
 kind: ServiceAccount
+
+# 元数据
 metadata:
+  # ServiceAccount 名称
   name: jenkins
+
+  # 所属namespace
   namespace: jenkins
+
 ---
+
+# ===========================================
+# Role - 角色 (Namespace 级别)
+# 定义一组权限规则
+# ===========================================
+
+# Kubernetes API 版本
 apiVersion: rbac.authorization.k8s.io/v1
+
+# 资源类型 - 角色
+# 可选值:
+#   - Role: Namespace 级别权限
+#   - ClusterRole: 集群级别权限，可跨 namespace
 kind: Role
+
+# 元数据
 metadata:
+  # Role 名称
   name: jenkins
+
+  # 所属namespace
   namespace: jenkins
+
+# 规则 - 定义权限
 rules:
-- apiGroups: [""]
-  resources: ["pods", "pods/log", "pods/exec", "services", "secrets"]
-  verbs: ["*"]
-- apiGroups: ["apps"]
-  resources: ["deployments", "statefulsets"]
-  verbs: ["*"]
-- apiGroups: ["networking.k8s.io"]
-  resources: ["ingresses"]
-  verbs: ["*"]
+  # 规则1: 核心 API 组资源
+  - # API 组列表
+    # 可选值:
+    #   - "": 核心 API 组 (v1)
+    #   - apps: 应用 API 组
+    #   - networking.k8s.io: 网络 API 组
+    #   - batch: 批处理 API 组
+    #   - rbac.authorization.k8s.io: RBAC API 组
+    apiGroups:
+      - ""  # 核心 API 组
+
+    # 资源类型列表
+    # 可选值:
+    #   - pods, podtemplates, services, endpoints
+    #   - configmaps, secrets, jobs, cronjobs
+    #   - deployments, statefulsets, daemonsets
+    #   - ingresses, networkpolicies
+    #   - persistentvolumes, persistentvolumeclaims
+    resources:
+      - pods           # Pod 管理
+      - pods/log       # Pod 日志查看
+      - pods/exec      # Pod 命令执行
+      - services       # Service 管理
+      - secrets        # Secret 访问
+      - configmaps     # ConfigMap 访问
+
+    # 动作列表 - 允许的操作
+    # 可选值:
+    #   - get: 获取单个资源
+    #   - list: 列出资源列表
+    #   - watch: 监听资源变化
+    #   - create: 创建资源
+    #   - update: 更新资源
+    #   - patch: 部分更新资源
+    #   - delete: 删除资源
+    #   - "*": 所有操作
+    verbs:
+      - "*"  # 所有权限
+
+  # 规则2: 应用 API 组资源
+  - apiGroups:
+      - "apps"
+    resources:
+      - deployments     # Deployment 管理
+      - statefulsets   # StatefulSet 管理
+      - replicasets    # ReplicaSet 管理
+    verbs:
+      - "*"
+
+  # 规则3: 网络 API 组资源
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - ingresses       # Ingress 管理
+      - networkpolicies # 网络策略
+    verbs:
+      - "*"
+
 ---
+
+# ===========================================
+# RoleBinding - 角色绑定
+# 将 Role/ClusterRole 绑定到 ServiceAccount
+# ===========================================
+
+# Kubernetes API 版本
 apiVersion: rbac.authorization.k8s.io/v1
+
+# 资源类型 - 角色绑定
+# 可选值:
+#   - RoleBinding: 绑定 Role (Namespace 级别)
+#   - ClusterRoleBinding: 绑定 ClusterRole (集群级别)
 kind: RoleBinding
+
+# 元数据
 metadata:
+  # RoleBinding 名称
   name: jenkins
+
+  # 所属namespace
   namespace: jenkins
+
+# 角色引用 - 指定绑定的角色
 roleRef:
+  # API 组
   apiGroup: rbac.authorization.k8s.io
+
+  # 角色类型
+  # 可选值: Role, ClusterRole
   kind: Role
+
+  # 角色名称 - 必须与上面定义的 Role 匹配
   name: jenkins
+
+# 主体列表 - 被授权的用户/组/ServiceAccount
 subjects:
-- kind: ServiceAccount
-  name: jenkins
-  namespace: jenkins
+  # 主体1: ServiceAccount
+  - # 主体类型
+    # 可选值:
+    #   - ServiceAccount: 服务账户
+    #   - User: 用户 (需要 kubeconfig 配置)
+    #   - Group: 用户组
+    kind: ServiceAccount
+
+    # 主体名称 - 必须与上面的 ServiceAccount 匹配
+    name: jenkins
+
+    # 主体所属 namespace
+    namespace: jenkins

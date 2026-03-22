@@ -1,33 +1,98 @@
+# Kubernetes API 版本
+# apps/v1 - 用于 Deployment, StatefulSet 等工作负载
 apiVersion: apps/v1
+
+# 资源类型 - Jenkins Agent 无状态工作负载
+# Agent 负责执行 Jenkins 构建任务
 kind: Deployment
+
+# 元数据
 metadata:
+  # Deployment 名称
   name: jenkins-agent
+
+  # 所属namespace - 必须与 Jenkins Master 相同
   namespace: jenkins
+
+  # 标签
   labels:
     app: jenkins-agent
+
+# 规格说明
 spec:
+  # 副本数 - 同时运行的 Agent 数量
+  # 可选值: 正整数
+  # 示例: 1 (开发), 2 (预发), 5 (生产)
   replicas: 2
+
+  # 选择器 - 识别属于此 Deployment 的 Pod
   selector:
     matchLabels:
       app: jenkins-agent
+
+  # Pod 模板
   template:
     metadata:
       labels:
         app: jenkins-agent
+
     spec:
+      # 服务账户 - 用于访问 Kubernetes API
+      # 必须与 rbac.yaml 中定义的 ServiceAccount 匹配
       serviceAccountName: jenkins
+
+      # 容器列表
       containers:
-      - name: jnlp
-        image: jenkins/inbound-agent:latest
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
-        env:
-        - name: JENKINS_URL
-          value: "http://jenkins:8080"
-        - name: JENKINS_AGENT_WORKDIR
-          value: "/home/jenkins/agent"
+        # JNLP 容器 - Jenkins Agent
+        - # 容器名称
+          name: jnlp
+
+          # 容器镜像 - Jenkins Inbound Agent
+          # 可选值:
+          #   - jenkins/inbound-agent:latest
+          #   - jenkins/inbound-agent:lts
+          #   - jenkins/agent:latest
+          image: jenkins/inbound-agent:latest
+
+          # 资源限制
+          resources:
+            # 请求 - 调度时最小资源
+            requests:
+              # CPU 请求
+              # 可选值: 10m, 50m, 100m, 200m, 500m, 1
+              cpu: 50m
+
+              # 内存请求
+              # 可选值: 64Mi, 128Mi, 256Mi, 512Mi
+              memory: 128Mi
+
+            # 限制 - 最大资源
+            limits:
+              # CPU 限制
+              cpu: 200m
+
+              # 内存限制
+              memory: 256Mi
+
+          # 环境变量 - Agent 连接 Master 所需配置
+          env:
+            # Jenkins Master URL - Agent 连接地址
+            # 可选值:
+            #   - http://jenkins:8080 (K8s内部DNS)
+            #   - http://jenkins.namespace.svc.cluster.local:8080
+            #   - https://jenkins.example.com (外部URL)
+            - name: JENKINS_URL
+              value: "http://jenkins:8080"
+
+            # Agent 工作目录 - 保存构建文件和脚本
+            # 可选值: 任何绝对路径
+            - name: JENKINS_AGENT_WORKDIR
+              value: "/home/jenkins/agent"
+
+            # 可选: Agent 名称 (如果不指定，K8s Pod 名称)
+            # - name: JENKINS_AGENT_NAME
+            #   value: "kubernetes-agent"
+
+            # 可选: Agent 标签 (用于选择执行节点)
+            # - name: JENKINS_AGENT_LABELS
+            #   value: "kubernetes docker"

@@ -1,12 +1,43 @@
+# Kubernetes API 版本
+# 核心v1 API组 - PersistentVolumeClaim 属于核心API
 apiVersion: v1
+
+# 资源类型 - 持久化存储声明
+# 可选值: PersistentVolumeClaim, PersistentVolume, StorageClass
 kind: PersistentVolumeClaim
+
+# 元数据
 metadata:
+  # PVC名称 - 在namespace内必须唯一
   name: jenkins-pvc
+
+  # 所属namespace - 必须已存在
+  # 可选值: 任何已创建的namespace名称
   namespace: jenkins
+
+# 规格说明 - 存储的具体配置
 spec:
+  # 访问模式 - 定义卷的读写权限
+  # 可选值:
+  #   - ReadWriteOnce: 单节点读写 (常用)
+  #   - ReadOnlyMany: 多节点只读
+  #   - ReadWriteMany: 多节点读写 (需要支持NFS等)
   accessModes:
     - ReadWriteOnce
+
+  # 资源请求 - 声明需要的存储大小
   resources:
     requests:
+      # 存储容量 - 支持 Gi, Mi, Ki, Ti 等单位
+      # 示例: 5Gi, 10Gi, 100Gi, 1Ti
       storage: 5Gi
+
+  # 存储类名 - 指定使用哪个存储类
+  # 可选值:
+  #   - standard: 默认存储类
+  #   - hostpath: 本地路径存储 (开发环境)
+  #   - nfs: NFS网络存储
+  #   - local: 本地存储
+  #   - gce-pd: Google Cloud Persistent Disk
+  #   - aws-ebs: AWS Elastic Block Store
   storageClassName: hostpath

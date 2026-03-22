@@ -472,23 +472,58 @@ Secret安全最佳实践：
 
 ```yaml
 # configmap-basic.yaml
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - 配置映射
+# 用于存储非敏感的配置数据
 kind: ConfigMap
+
+# 元数据
 metadata:
+  # ConfigMap名称 - 在namespace内必须唯一
   name: app-config
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: app
     environment: production
+
+  # 注解
   annotations:
     description: "Application configuration"
+
+# 数据 - 存储配置键值对
+# 值必须是字符串
 data:
+  # 数据库URL
+  # 示例: jdbc:mysql://localhost:3306/mydb
   database.url: "jdbc:mysql://localhost:3306/mydb"
+
+  # 数据库用户名
   database.username: "admin"
+
+  # 数据库密码 (生产环境应使用Secret)
   database.password: "secret"
+
+  # 缓存开关
+  # 可选值: "true", "false"
   cache.enabled: "true"
+
+  # 缓存TTL (秒)
   cache.ttl: "3600"
+
+  # 日志级别
+  # 可选值: "debug", "info", "warn", "error"
   log.level: "info"
+
+  # 日志格式
+  # 可选值: "json", "text", "xml"
   log.format: "json"
 ```
 
@@ -496,8 +531,14 @@ data:
 
 ```yaml
 # configmap-files.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: ConfigMap
+
+# 元数据
 metadata:
   name: nginx-config
   namespace: default
@@ -506,7 +547,11 @@ metadata:
     environment: production
   annotations:
     description: "Nginx configuration"
+
+# 数据 - 存储配置文件
 data:
+  # Nginx主配置文件
+  # 使用 | 表示多行字符串
   nginx.conf: |
     user nginx;
     worker_processes auto;
@@ -533,6 +578,8 @@ data:
         
         include /etc/nginx/conf.d/*.conf;
     }
+
+  # Nginx默认站点配置
   default.conf: |
     server {
         listen 80;
@@ -586,21 +633,55 @@ kubectl create configmap app-literal --from-literal=database.url=jdbc:mysql://lo
 
 ```yaml
 # secret-basic.yaml
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - 密钥
+# 用于存储敏感数据，如密码、Token、证书等
 kind: Secret
+
+# 元数据
 metadata:
+  # Secret名称 - 在namespace内必须唯一
   name: app-secret
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: app
     environment: production
+
+  # 注解
   annotations:
     description: "Application secret"
+
+# Secret类型 - 定义数据的格式和用途
+# 可选值:
+#   - Opaque: 通用密钥 (默认)
+#   - kubernetes.io/tls: TLS证书
+#   - kubernetes.io/dockerconfigjson: Docker镜像仓库配置
+#   - kubernetes.io/basic-auth: 基本认证
+#   - kubernetes.io/ssh-auth: SSH密钥
 type: Opaque
+
+# 数据 - Base64编码的键值对
+# 值的格式: base64编码字符串
+# echo -n "value" | base64
 data:
+  # 数据库用户名 - Base64编码: YWRtaW4=
   database.username: YWRtaW4=
+
+  # 数据库密码 - Base64编码: c2VjcmV0
   database.password: c2VjcmV0
+
+  # API密钥 - Base64编码
   api.key: YXBpLWtleS0xMjM0NTY3ODkw
+
+  # API密钥 - Base64编码
   api.secret: YXBpLXNlY3JldC0xMjM0NTY3ODkw
 ```
 
@@ -608,8 +689,14 @@ data:
 
 ```yaml
 # secret-tls.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: Secret
+
+# 元数据
 metadata:
   name: tls-secret
   namespace: default
@@ -618,9 +705,18 @@ metadata:
     environment: production
   annotations:
     description: "TLS certificate"
+
+# Secret类型 - TLS证书
 type: kubernetes.io/tls
+
+# 数据 - TLS证书和私钥
 data:
+  # TLS证书 - Base64编码的证书
+  # 使用 openssl x509 -in cert.pem -outform DER | base64 生成
   tls.crt: LS0tLS1CRUdJTi...
+
+  # TLS私钥 - Base64编码的私钥
+  # 使用 openssl rsa -in key.pem -outform DER | base64 生成
   tls.key: LS0tLS1CRUdJTi...
 ```
 
@@ -628,8 +724,14 @@ data:
 
 ```yaml
 # secret-dockerconfig.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: Secret
+
+# 元数据
 metadata:
   name: docker-registry-secret
   namespace: default
@@ -638,8 +740,15 @@ metadata:
     environment: production
   annotations:
     description: "Docker registry secret"
+
+# Secret类型 - Docker镜像仓库配置
 type: kubernetes.io/dockerconfigjson
+
+# 数据 - Docker配置文件
+# 格式: Base64编码的Docker config JSON
 data:
+  # Docker config JSON - 包含仓库认证信息
+  # 格式: {"auths": {"registry.example.com": {"username": "...", "password": "...", "auth": "..."}}}
   .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJzZWNyZXQiLCJhdXRoIjoiYWRtaW46c2VjcmV0In19fQ==
 ```
 

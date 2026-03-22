@@ -1,56 +1,172 @@
+# Kubernetes API 版本
+# apps/v1 - 用于 Deployment, StatefulSet, DaemonSet 等工作负载
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2, apps/v2alpha1
 apiVersion: apps/v1
+
+# 资源类型 - 无状态工作负载
+# 可选值:
+#   - Deployment: 无状态应用 (常用)
+#   - StatefulSet: 有状态应用
+#   - DaemonSet: 每节点一个Pod
+#   - ReplicaSet: Deployment 的底层副本控制器
 kind: Deployment
+
+# 元数据
 metadata:
+  # Deployment 名称 - 在namespace内必须唯一
   name: jenkins
+
+  # 所属namespace - 必须已存在
   namespace: jenkins
+
+  # 标签 - 用于分组和选择
+  # 格式: key:value, 可包含字母、数字、-、_、.
   labels:
+    # 应用标签
+    # 示例: app: jenkins, tier: backend, component: ci
     app: jenkins
+
+# 规格说明 - Deployment 的核心配置
 spec:
+  # 副本数 - 期望运行的 Pod 数量
+  # 可选值: 正整数 (1-1000)
+  # 示例: 1 (单实例), 2 (高可用), 3 (生产环境)
   replicas: 1
+
+  # 选择器 - 用于识别属于此 Deployment 的 Pod
+  # 必须匹配 template.metadata.labels
   selector:
     matchLabels:
+      # 标签键值对
+      # 必须与下面 template.labels 完全匹配
       app: jenkins
+
+  # Pod 模板 - 定义 Pod 的具体配置
   template:
+    # Pod 元数据
     metadata:
+      # Pod 标签 - 会被 selector 匹配
       labels:
+        # 标签键值对
         app: jenkins
+
+    # Pod 规格
     spec:
+      # 容器列表 - 一个 Pod 可以包含多个容器
       containers:
-      - name: jenkins
-        image: jenkins/jenkins:lts
-        ports:
-        - containerPort: 8080
-          name: web
-        - containerPort: 50000
-          name: agent
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 1Gi
-        env:
-        - name: JAVA_OPTS
-          value: "-Xmx512m -Xms256m"
-        volumeMounts:
-        - name: jenkins-home
-          mountPath: /var/jenkins_home
-        livenessProbe:
-          httpGet:
-            path: /login
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /login
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
+        # 第一个 (也是唯一) 容器
+        - # 容器名称 - 必须唯一
+          # 命名规范: 小写字母、数字、连字符
+          name: jenkins
+
+          # 容器镜像
+          # 格式: 镜像地址:标签 或 镜像地址@sha256:摘要
+          # 可选值:
+          #   - jenkins/jenkins:lts (长期支持版)
+          #   - jenkins/jenkins:2.541.2 (指定版本)
+          #   - jenkins/jenkins:weekly (每周版)
+          image: jenkins/jenkins:lts
+
+          # 容器端口
+          ports:
+            # 端口号 - 容器监听的端口
+            # 可选值: 1-65535
+            # 常用端口: 80, 443, 8080, 8443, 3000, 5000
+            - # 容器端口 - Pod 内部端口
+              containerPort: 8080
+
+              # 端口名称 - 可选，用于 Service 引用
+              # 命名规范: 小写字母、数字、连字符
+              name: web
+
+          # 资源限制 - CPU 和内存的请求/限制
+          resources:
+            # 请求 - 调度时需要的最小资源
+            requests:
+              # CPU 请求 - Kubernetes 调度器使用
+              # 格式: 核心数 或 毫核(m)
+              # 可选值:
+              #   - 100m = 0.1核 (100 millicpu)
+              #   - 500m = 0.5核
+              #   - 1 = 1核
+              cpu: 100m
+
+              # 内存请求 - 调度时需要的最小内存
+              # 格式: Gi, Mi, Ki
+              # 可选值:
+              #   - 128Mi = 128兆字节
+              #   - 256Mi = 256兆字节
+              #   - 512Mi = 512兆字节
+              #   - 1Gi = 1吉字节
+              memory: 256Mi
+
+            # 限制 - 容器可以使用的最大资源
+            limits:
+              # CPU 限制 - 容器最多使用的 CPU
+              # 可选值: 同 requests.cpu，但通常 >= requests.cpu
+              cpu: 500m
+
+              # 内存限制 - 容器最多使用的内存
+              # 注意: 超过此限制会被 OOM Kill
+              # 可选值: 同 requests.memory
+              memory: 1Gi
+
+          # 环境变量 - 传递给容器的键值对
+          env:
+            # 环境变量
+            - # 变量名称
+              # 命名规范: 大写字母、数字、下划线
+              name: JAVA_OPTS
+
+              # 变量值
+              # 示例: -Xmx512m -Xms256m (JVM参数)
+              # 可选值: 任何字符串
+              value: "-Xmx512m -Xms256m"
+
+          # 存活探针 - 检测容器是否存活
+          # 如果探测失败，Kubernetes 会重启容器
+          livenessProbe:
+            # HTTP GET 探测
+            httpGet:
+              # 探测路径
+              path: /login
+              # 探测端口 (可以是端口号或端口名称)
+              port: 8080
+
+            # 初始化延迟 - 容器启动后多久开始探测
+            # 格式: 秒数
+            # 可选值: 正整数
+            initialDelaySeconds: 60
+
+            # 探测间隔 - 每次探测的间隔时间
+            periodSeconds: 10
+
+            # 超时时间 - 探测超时时间
+            timeoutSeconds: 5
+
+          # 就绪探针 - 检测容器是否可以接收流量
+          # 如果探测失败，会从 Service 负载均衡中移除
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+
+            # 初始化延迟
+            initialDelaySeconds: 60
+
+            # 探测间隔
+            periodSeconds: 10
+
+            # 超时时间
+            timeoutSeconds: 5
+
+      # 卷挂载 - 将存储挂载到容器
       volumes:
-      - name: jenkins-home
-        persistentVolumeClaim:
-          claimName: jenkins-pvc
+        # 卷名称 - 引用下面定义的卷
+        - name: jenkins-home
+
+          # 持久化卷声明 - 使用 PVC 作为卷
+          persistentVolumeClaim:
+            # PVC 名称 - 必须已存在
+            # 必须与 pvc.yaml 中的 name 匹配
+            claimName: jenkins-pvc

@@ -1,18 +1,60 @@
+# Kubernetes API 版本
+# 核心v1 API组
 apiVersion: v1
+
+# 资源类型 - 服务，用于将Pod暴露为网络服务
+# 可选值:
+#   - Service: 常规服务
+#   - Endpoints: 服务端点
+#   - Ingress: HTTP/HTTPS 路由
 kind: Service
+
+# 元数据
 metadata:
+  # Service 名称 - 在namespace内必须唯一
   name: jenkins
+
+  # 所属namespace
   namespace: jenkins
+
+# 规格说明 - Service 的核心配置
 spec:
+  # Service 类型 - 定义服务暴露方式
+  # 可选值:
+  #   - ClusterIP: 集群内部访问 (默认)
+  #   - NodePort: 通过节点端口访问
+  #   - LoadBalancer: 通过云厂商负载均衡器
+  #   - ExternalName: 映射到外部域名
   type: NodePort
+
+  # 端口定义
   ports:
-  - port: 8080
-    targetPort: 8080
-    name: web
-    nodePort: 30080
-  - port: 50000
-    targetPort: 50000
-    name: agent
-    nodePort: 30050
+    # 端口配置
+    - # Service 端口 - ClusterIP 监听的端口
+      # 可选值: 1-65535
+      port: 8080
+
+      # 目标端口 - 转发到的容器端口
+      # 可选值: 端口号 (1-65535) 或 端口名称
+      targetPort: 8080
+
+      # 端口名称 - 可选，用于识别端口用途
+      name: web
+
+      # NodePort - 仅 type=NodePort 时需要
+      # 可选值: 30000-32767
+      # 如果不指定，Kubernetes 会自动分配
+      nodePort: 30080
+
+    # Agent 通信端口
+    - port: 50000
+      targetPort: 50000
+      name: agent
+      nodePort: 30050
+
+  # 选择器 - 用于定位提供服务的 Pod
+  # 必须匹配 Deployment/Pod 的 labels
   selector:
+    # 标签键值对
+    # 必须与 deployment.yaml 中的 spec.template.metadata.labels 匹配
     app: jenkins

@@ -275,41 +275,98 @@ StorageClass的优势：
 
 ```yaml
 # pv-local.yaml
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - 持久化卷
+# 用于存储数据，与Pod生命周期独立
 kind: PersistentVolume
+
+# 元数据
 metadata:
+  # PV名称 - 必须唯一
   name: local-pv
+
+  # 所属namespace - PV是集群级别资源，不属于namespace
   namespace: default
+
+  # 标签
   labels:
     app: app
     environment: production
+
+  # 注解
   annotations:
     description: "Local persistent volume"
+
+# 规格说明
 spec:
+  # 容量 - 存储大小
   capacity:
+    # 存储容量
+    # 格式: Gi, Mi, Ki, Ti
     storage: 10Gi
+
+  # 访问模式 - 定义卷的读写权限
+  # 可选值:
+  #   - ReadWriteOnce: 单节点读写 (常用)
+  #   - ReadOnlyMany: 多节点只读
+  #   - ReadWriteMany: 多节点读写 (需要NFS等支持)
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
+
+  # 回收策略 - PVC删除后的行为
+  # 可选值:
+  #   - Retain: 保留数据 (默认)
+  #   - Delete: 删除卷
+  #   - Recycle: 清除数据后重用 (已废弃)
   persistentVolumeReclaimPolicy: Retain
+
+  # 存储类名 - 用于动态 provisioning
+  # 可选值: local-storage, standard, nfs, aws-ebs, gce-pd
   storageClassName: local-storage
+
+  # 本地存储配置
   local:
+    # 存储路径 - 节点上的目录
     path: /mnt/data
+
+  # 节点亲和性 - 限制PV所在的节点
   nodeAffinity:
+    # 必须满足的条件
     required:
+      # 节点选择器 terms
       nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - node1
+        # 匹配表达式
+        - matchExpressions:
+            # 节点标签键
+            # 可选值: kubernetes.io/hostname, topology.kubernetes.io/zone等
+            - key: kubernetes.io/hostname
+
+              # 操作符
+              # 可选值: In, NotIn, Exists, DoesNotExist,Gt, Lt
+              operator: In
+
+              # 标签值列表
+              values:
+                # 节点名称
+                - node1
 ```
 
 ### 6.2.2 NFS存储PV配置
 
 ```yaml
 # pv-nfs.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: PersistentVolume
+
+# 元数据
 metadata:
   name: nfs-pv
   namespace: default
@@ -318,15 +375,30 @@ metadata:
     environment: production
   annotations:
     description: "NFS persistent volume"
+
+# 规格说明
 spec:
+  # 容量
   capacity:
     storage: 100Gi
+
+  # 访问模式 - NFS支持多节点读写
   accessModes:
-  - ReadWriteMany
+    - ReadWriteMany
+
+  # 回收策略
   persistentVolumeReclaimPolicy: Retain
+
+  # 存储类名
   storageClassName: nfs-storage
+
+  # NFS存储配置
   nfs:
+    # NFS服务器地址
+    # 可选值: IP地址或域名
     server: 192.168.1.100
+
+    # NFS共享路径
     path: /export/data
 ```
 
@@ -334,8 +406,14 @@ spec:
 
 ```yaml
 # pv-aws-ebs.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: PersistentVolume
+
+# 元数据
 metadata:
   name: aws-ebs-pv
   namespace: default
@@ -344,15 +422,31 @@ metadata:
     environment: production
   annotations:
     description: "AWS EBS persistent volume"
+
+# 规格说明
 spec:
+  # 容量
   capacity:
     storage: 100Gi
+
+  # 访问模式 - EBS只支持单节点读写
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
+
+  # 回收策略 - Delete会删除EBS卷
   persistentVolumeReclaimPolicy: Delete
+
+  # 存储类名
   storageClassName: aws-ebs-storage
+
+  # AWS EBS配置
   awsElasticBlockStore:
+    # EBS卷ID
+    # 格式: vol-xxxxxxxxxxxxxxxxx
     volumeID: vol-01234567890abcdef
+
+    # 文件系统类型
+    # 可选值: ext2, ext3, ext4, xfs, ntfs
     fsType: ext4
 ```
 
@@ -360,8 +454,14 @@ spec:
 
 ```yaml
 # pv-gce-pd.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: PersistentVolume
+
+# 元数据
 metadata:
   name: gce-pd-pv
   namespace: default
@@ -370,15 +470,30 @@ metadata:
     environment: production
   annotations:
     description: "GCE PD persistent volume"
+
+# 规格说明
 spec:
+  # 容量
   capacity:
     storage: 100Gi
+
+  # 访问模式 - GCE PD只支持单节点读写
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
+
+  # 回收策略 - Delete会删除PD
   persistentVolumeReclaimPolicy: Delete
+
+  # 存储类名
   storageClassName: gce-pd-storage
+
+  # GCE PD配置
   gcePersistentDisk:
+    # PD名称 - GCE控制台中的磁盘名称
     pdName: my-disk
+
+    # 文件系统类型
+    # 可选值: ext2, ext3, ext4, xfs
     fsType: ext4
 ```
 
@@ -390,23 +505,55 @@ spec:
 
 ```yaml
 # pvc-basic.yaml
+
+# Kubernetes API 版本
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - 持久化卷声明
+# PVC会向PV发起绑定请求
 kind: PersistentVolumeClaim
+
+# 元数据
 metadata:
+  # PVC名称 - 在namespace内必须唯一
   name: app-pvc
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: app
     environment: production
+
+  # 注解
   annotations:
     description: "Application persistent volume claim"
+
+# 规格说明
 spec:
+  # 访问模式 - 必须与PV匹配
+  # 可选值: ReadWriteOnce, ReadOnlyMany, ReadWriteMany
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
+
+  # 资源请求
   resources:
     requests:
+      # 请求的存储大小
+      # 必须小于等于PV容量
       storage: 10Gi
+
+  # 存储类名 - 指定使用哪个存储类
+  # 可选值: standard, fast-ssd, local-storage, nfs
+  # 如果为空，使用默认存储类
   storageClassName: standard
+
+  # 卷模式 - 定义卷的类型
+  # 可选值:
+  #   - Filesystem: 文件系统 (默认)
+  #   - Block: 块设备
   volumeMode: Filesystem
 ```
 
@@ -414,8 +561,14 @@ spec:
 
 ```yaml
 # pvc-dynamic.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: PersistentVolumeClaim
+
+# 元数据
 metadata:
   name: app-pvc
   namespace: default
@@ -424,13 +577,24 @@ metadata:
     environment: production
   annotations:
     description: "Application persistent volume claim with dynamic provisioning"
+
+# 规格说明
 spec:
+  # 访问模式
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
+
+  # 资源请求
   resources:
     requests:
       storage: 10Gi
+
+  # 存储类名 - 动态供应需要指定存储类
+  # StorageClass会根据配置自动创建PV
+  # 可选值: fast-ssd (SSD存储), standard (标准存储)
   storageClassName: fast-ssd
+
+  # 卷模式
   volumeMode: Filesystem
 ```
 
@@ -438,8 +602,14 @@ spec:
 
 ```yaml
 # pvc-readonly.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: PersistentVolumeClaim
+
+# 元数据
 metadata:
   name: app-pvc
   namespace: default
@@ -448,13 +618,22 @@ metadata:
     environment: production
   annotations:
     description: "Application persistent volume claim with read-only access"
+
+# 规格说明
 spec:
+  # 访问模式 - 只读需要PV支持
   accessModes:
-  - ReadOnlyMany
+    - ReadOnlyMany
+
+  # 资源请求
   resources:
     requests:
       storage: 10Gi
+
+  # 存储类名
   storageClassName: standard
+
+  # 卷模式
   volumeMode: Filesystem
 ```
 

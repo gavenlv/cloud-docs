@@ -453,89 +453,178 @@ DaemonSet调度策略：
 
 ```yaml
 # statefulset-basic.yaml
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2
 apiVersion: apps/v1
+
+# 资源类型 - 有状态工作负载
+# 用于部署有状态应用，支持稳定的网络标识和持久存储
+# 可选值: StatefulSet, Deployment, DaemonSet
 kind: StatefulSet
+
+# 元数据
 metadata:
+  # StatefulSet名称
   name: web
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: web
     environment: production
+
+  # 注解
   annotations:
     description: "Web application statefulset"
+
+# 规格说明
 spec:
+  # 服务名 - 必须与Headless Service名称匹配
+  # StatefulSet使用此名称创建稳定的网络标识
   serviceName: web
+
+  # 副本数 - 有状态Pod的数量
+  # Pod名称格式: <statefulset-name>-<ordinal>
+  # 示例: web-0, web-1, web-2
   replicas: 3
+
+  # 选择器 - 识别属于此StatefulSet的Pod
   selector:
     matchLabels:
       app: web
+
+  # Pod模板
   template:
     metadata:
       labels:
         app: web
         environment: production
+
     spec:
+      # 容器列表
       containers:
-      - name: web
-        image: nginx:1.25.0
-        ports:
-        - containerPort: 80
+        - # 容器名称
           name: web
+
+          # 容器镜像
+          image: nginx:1.25.0
+
+          # 端口配置
+          ports:
+            - # 容器端口
+              containerPort: 80
+              # 端口名称 - 用于Service引用
+              name: web
+
+          # 资源限制
+          resources:
+            requests:
+              # CPU请求
+              # 可选值: 100m, 500m, 1
+              cpu: 100m
+              # 内存请求
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # 环境变量
+          env:
+            # 从Pod字段引用环境变量
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  # 引用Pod名称
+                  fieldPath: metadata.name
+
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  # 引用Pod namespace
+                  fieldPath: metadata.namespace
+
+          # 卷挂载
+          volumeMounts:
+            - # 卷名称 - 引用volumeClaimTemplates
+              name: data
+              # 挂载路径
+              mountPath: /data
+
+          # 存活探针
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # 就绪探针
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+  # 卷声明模板 - 为每个Pod创建独立的PVC
+  # StatefulSet管理的Pod共享模板，但各自有独立的存储
+  volumeClaimTemplates:
+    - # 元数据
+      metadata:
+        # 卷声明名称 - 会被转换为 <volumeClaimTemplate-name>-<pod-name>
+        name: data
+        labels:
+          app: web
+          environment: production
+
+      # 规格说明
+      spec:
+        # 访问模式
+        # 可选值: ReadWriteOnce, ReadOnlyMany, ReadWriteMany
+        accessModes:
+          - ReadWriteOnce
+
+        # 资源请求
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        volumeMounts:
-        - name: data
-          mountPath: /data
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 3
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-      labels:
-        app: web
-        environment: production
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
-      storageClassName: standard
+            # 存储大小
+            storage: 10Gi
+
+        # 存储类名
+        # 可选值: standard, fast-ssd, local-storage
+        storageClassName: standard
+
+  # 更新策略
   updateStrategy:
+    # 更新类型
+    # 可选值:
+    #   - RollingUpdate: 滚动更新 (默认)
+    #   - OnDelete: 删除时才更新
     type: RollingUpdate
+
+    # 滚动更新参数
     rollingUpdate:
+      # 分区 - 用于金丝雀发布
+      # 索引大于等于此值的Pod会被更新
+      # 示例: partition=2, 则 web-2, web-3... 会更新
       partition: 0
+
+  # Pod管理策略
+  # 可选值:
+  #   - OrderedReady: 有序启动/删除 (默认)
+  #   - Parallel: 并行启动/删除
   podManagementPolicy: OrderedReady
+
+  # 历史版本限制 - 回滚用
   revisionHistoryLimit: 10
 ```
 
@@ -543,25 +632,53 @@ spec:
 
 ```yaml
 # service-headless.yaml
+
+# Kubernetes API 版本
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - Service
 kind: Service
+
+# 元数据
 metadata:
+  # Service名称 - 必须与StatefulSet的serviceName匹配
   name: web
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: web
     environment: production
+
+  # 注解
   annotations:
     description: "Web application headless service"
+
+# 规格说明
 spec:
+  # 集群IP - None表示Headless Service
+  # Headless Service不提供负载均衡，而是让客户端自己选择Pod
   clusterIP: None
+
+  # 选择器 - 指定哪些Pod归此Service管理
   selector:
     app: web
+
+  # 端口配置
   ports:
-  - name: web
-    port: 80
-    targetPort: 80
-    protocol: TCP
+    - # 端口名称
+      name: web
+      # Service端口
+      port: 80
+      # 目标端口
+      targetPort: 80
+      # 协议
+      protocol: TCP
+
+  # 会话亲和性
   sessionAffinity: None
 ```
 
@@ -569,56 +686,88 @@ spec:
 
 ```yaml
 # statefulset-partition.yaml
+
+# Kubernetes API 版本
 apiVersion: apps/v1
+
+# 资源类型 - StatefulSet
 kind: StatefulSet
+
+# 元数据
 metadata:
   name: web
   namespace: default
   labels:
     app: web
     environment: production
+
+# 规格说明
 spec:
+  # 服务名
   serviceName: web
+
+  # 副本数
   replicas: 3
+
+  # 选择器
   selector:
     matchLabels:
       app: web
+
+  # Pod模板
   template:
     metadata:
       labels:
         app: web
         environment: production
+
     spec:
+      # 容器列表
       containers:
-      - name: web
-        image: nginx:1.26.0
-        ports:
-        - containerPort: 80
+        - # 容器名称
           name: web
+          # 镜像版本更新到1.26.0
+          image: nginx:1.26.0
+          # 端口配置
+          ports:
+            - containerPort: 80
+              name: web
+          # 资源限制
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # 卷挂载
+          volumeMounts:
+            - name: data
+              mountPath: /data
+
+  # 卷声明模板
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        volumeMounts:
-        - name: data
-          mountPath: /data
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
-      storageClassName: standard
+            storage: 10Gi
+        storageClassName: standard
+
+  # 更新策略
   updateStrategy:
+    # 滚动更新
     type: RollingUpdate
+
+    # 分区更新 - 只更新索引大于等于partition的Pod
+    # 这里设为2, 所以只有web-2会更新
     rollingUpdate:
       partition: 2
+
+  # Pod管理策略
   podManagementPolicy: OrderedReady
 ```
 
@@ -630,76 +779,154 @@ spec:
 
 ```yaml
 # daemonset-basic.yaml
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2
 apiVersion: apps/v1
+
+# 资源类型 - DaemonSet
+# 确保每个节点上都运行一个Pod副本
+# 常用于日志收集、监控等系统服务
+# 可选值: DaemonSet, Deployment, StatefulSet
 kind: DaemonSet
+
+# 元数据
 metadata:
+  # DaemonSet名称
   name: fluentd
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: fluentd
     environment: production
+
+  # 注解
   annotations:
     description: "Fluentd log collector daemonset"
+
+# 规格说明
 spec:
+  # 选择器 - 识别属于此DaemonSet的Pod
   selector:
     matchLabels:
       app: fluentd
+
+  # Pod模板
   template:
     metadata:
       labels:
         app: fluentd
         environment: production
+
     spec:
+      # 服务账户 - 用于Pod访问Kubernetes API
       serviceAccountName: fluentd
+
+      # 容器列表
       containers:
-      - name: fluentd
-        image: fluent/fluentd:v1.16-1
-        ports:
-        - containerPort: 24224
-          name: forward
-          protocol: TCP
-        - containerPort: 24231
-          name: http
-          protocol: TCP
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        volumeMounts:
-        - name: varlog
-          mountPath: /var/log
-          readOnly: true
-        - name: varlibdockercontainers
-          mountPath: /var/lib/docker/containers
-          readOnly: true
-        - name: fluentd-config
-          mountPath: /fluentd/etc/fluent.conf
-          subPath: fluent.conf
-        env:
-        - name: FLUENTD_CONF
-          value: fluent.conf
-        - name: FLUENTD_OPT
-          value: --no-supervisor
+        - # 容器名称
+          name: fluentd
+
+          # 容器镜像
+          image: fluent/fluentd:v1.16-1
+
+          # 端口配置
+          ports:
+            # Fluentd forward端口 - 用于日志转发
+            - containerPort: 24224
+              name: forward
+              protocol: TCP
+
+            # Fluentd HTTP端口 - 用于监控
+            - containerPort: 24231
+              name: http
+              protocol: TCP
+
+          # 资源限制
+          resources:
+            requests:
+              # CPU请求
+              cpu: 100m
+              # 内存请求
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # 卷挂载
+          volumeMounts:
+            # var/log目录 - 只读
+            - name: varlog
+              mountPath: /var/log
+              # 只读挂载
+              readOnly: true
+
+            # Docker容器日志目录 - 只读
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+
+            # Fluentd配置文件
+            - name: fluentd-config
+              mountPath: /fluentd/etc/fluent.conf
+              # 子路径 - 只挂载卷中的特定文件
+              subPath: fluent.conf
+
+          # 环境变量
+          env:
+            # Fluentd配置文件名
+            - name: FLUENTD_CONF
+              value: fluent.conf
+
+            # Fluentd选项
+            - name: FLUENTD_OPT
+              value: --no-supervisor
+
+      # 卷定义
       volumes:
-      - name: varlog
-        hostPath:
-          path: /var/log
-      - name: varlibdockercontainers
-        hostPath:
-          path: /var/lib/docker/containers
-      - name: fluentd-config
-        configMap:
-          name: fluentd-config
+        # var/log目录 - 使用宿主机路径
+        - name: varlog
+          hostPath:
+            # 宿主机上的路径
+            path: /var/log
+
+        # Docker容器日志目录
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+
+        # Fluentd配置 - 使用ConfigMap
+        - name: fluentd-config
+          configMap:
+            # ConfigMap名称
+            name: fluentd-config
+
+      # 优雅终止期限
       terminationGracePeriodSeconds: 30
+
+      # DNS策略
+      # 可选值:
+      #   - ClusterFirst: 使用集群DNS (默认)
+      #   - Default: 使用节点DNS
+      #   - ClusterFirstWithHostNet: 使用集群DNS但使用宿主机网络
       dnsPolicy: ClusterFirstWithHostNet
+
+      # 是否使用宿主机网络
       hostNetwork: false
+
+  # 更新策略
   updateStrategy:
+    # 更新类型 - DaemonSet通常使用RollingUpdate
     type: RollingUpdate
+
+    # 最大不可用Pod数
     rollingUpdate:
       maxUnavailable: 1
+
+  # 历史版本限制
   revisionHistoryLimit: 10
 ```
 

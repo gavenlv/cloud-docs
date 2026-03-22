@@ -72,3 +72,69 @@ kubectl delete -f rbac.yaml
 kubectl delete -f pvc.yaml
 kubectl delete -f namespace.yaml
 ```
+
+---
+
+## YAML配置文件详解
+
+### 资源创建顺序
+
+```
+1. namespace.yaml    # 创建命名空间
+2. pvc.yaml         # 创建持久化存储
+3. rbac.yaml        # 创建ServiceAccount和RBAC权限
+4. deployment.yaml   # 创建Jenkins Master
+5. service.yaml     # 暴露服务
+6. ingress.yaml      # 配置Ingress (可选)
+7. agent-deployment.yaml  # 创建Agent (可选)
+```
+
+### 字段说明索引
+
+| 文件 | 资源类型 | 说明 |
+|------|----------|------|
+| [namespace.yaml](namespace.yaml) | Namespace | 命名空间，用于资源隔离 |
+| [pvc.yaml](pvc.yaml) | PersistentVolumeClaim | 持久化存储声明 |
+| [deployment.yaml](deployment.yaml) | Deployment | Jenkins Master无状态部署 |
+| [service.yaml](service.yaml) | Service | 服务暴露 |
+| [ingress.yaml](ingress.yaml) | Ingress | HTTP/HTTPS路由 |
+| [rbac.yaml](rbac.yaml) | ServiceAccount/Role/RoleBinding | 权限控制 |
+| [agent-deployment.yaml](agent-deployment.yaml) | Deployment | Jenkins Agent部署 |
+
+### 常用资源类型
+
+| kind | 说明 | apiVersion |
+|------|------|------------|
+| Namespace | 命名空间 | v1 |
+| Pod | Pod | v1 |
+| Service | 服务 | v1 |
+| Deployment | 无状态部署 | apps/v1 |
+| StatefulSet | 有状态部署 | apps/v1 |
+| DaemonSet | 每节点Pod | apps/v1 |
+| ConfigMap | 配置 | v1 |
+| Secret | 密钥 | v1 |
+| PersistentVolumeClaim | 存储声明 | v1 |
+| Ingress | HTTP路由 | networking.k8s.io/v1 |
+| ServiceAccount | 服务账户 | v1 |
+| Role | 角色(NS级) | rbac.authorization.k8s.io/v1 |
+| ClusterRole | 角色(集群级) | rbac.authorization.k8s.io/v1 |
+| RoleBinding | 角色绑定 | rbac.authorization.k8s.io/v1 |
+| ConfigMap | 配置映射 | v1 |
+
+### 常用注解 (annotations)
+
+| 注解 | 说明 | 可选值 |
+|------|------|--------|
+| nginx.ingress.kubernetes.io/ssl-redirect | SSL重定向 | "true", "false" |
+| nginx.ingress.kubernetes.io/proxy-body-size | 请求体大小 | "10m", "100m" |
+| nginx.ingress.kubernetes.io/proxy-connect-timeout | 连接超时 | 秒数 |
+| nginx.ingress.kubernetes.io/proxy-read-timeout | 读取超时 | 秒数 |
+
+### 常用标签 (labels)
+
+| 标签键 | 说明 | 示例值 |
+|--------|------|--------|
+| app | 应用名称 | jenkins, nginx, mysql |
+| tier | 层级 | frontend, backend, database |
+| environment | 环境 | dev, staging, production |
+| version | 版本 | v1, v2, latest |

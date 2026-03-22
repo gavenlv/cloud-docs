@@ -1,20 +1,85 @@
+# Kubernetes API 版本
+# networking.k8s.io/v1 - Kubernetes 1.19+ 推荐使用
+# 可选值: networking.k8s.io/v1, networking.k8s.io/v1beta1
 apiVersion: networking.k8s.io/v1
+
+# 资源类型 - HTTP/HTTPS 路由规则
+# 可选值: Ingress
 kind: Ingress
+
+# 元数据
 metadata:
+  # Ingress 名称 - 在namespace内必须唯一
   name: jenkins
+
+  # 所属namespace
   namespace: jenkins
+
+  # 注解 - 用于配置 Ingress 控制器的行为
+  # 不同 Ingress 控制器支持不同的注解
   annotations:
+    # Nginx Ingress 控制器注解
+    # 是否启用 SSL 重定向
+    # 可选值: "true", "false"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+    # 请求体大小限制
+    # 可选值: "10m", "100m", "1g" 等
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+    # 连接超时时间 (秒)
+    # 可选值: 正整数
+    # nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+
+    # 发送超时时间 (秒)
+    # 可选值: 正整数
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+
+    # 读取超时时间 (秒)
+    # 可选值: 正整数
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+
+    # 启用 CORS
+    # 可选值: "true", "false"
+    # nginx.ingress.kubernetes.io/enable-cors: "true"
+
+# 规格说明 - Ingress 的路由规则
 spec:
+  # 规则列表 - 定义域名和路径的路由规则
   rules:
-  - host: jenkins.local
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: jenkins
-            port:
-              number: 8080
+    # 第一个规则
+    - # 主机名 - 匹配请求的 Host 头
+      # 可选值: 域名, 通配符 (*.example.com), 或空 (匹配所有)
+      # 示例: jenkins.example.com, jenkins.local, "*.jenkins.io"
+      host: jenkins.local
+
+      # HTTP 规则
+      http:
+        # 路径列表
+        paths:
+          # 第一个路径
+          - # 路径前缀
+            # 可选值: 任何路径字符串
+            # 示例: /, /jenkins, /api, /v1
+            path: /
+
+            # 路径类型 - 定义路径匹配方式
+            # 可选值:
+            #   - Prefix: 前缀匹配 (最常用)
+            #   - Exact: 精确匹配
+            #   - ImplementationSpecific: 由 IngressClass 决定
+            pathType: Prefix
+
+            # 后端服务配置
+            backend:
+              # 服务配置
+              service:
+                # 服务名称 - 必须存在
+                # 必须与 service.yaml 中的 metadata.name 匹配
+                name: jenkins
+
+                # 服务端口
+                port:
+                  # 端口号
+                  # 可选值: 1-65535
+                  number: 8080

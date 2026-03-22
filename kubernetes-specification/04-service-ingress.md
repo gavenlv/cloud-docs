@@ -544,33 +544,89 @@ Ingress规则：
 
 ```yaml
 # service-clusterip.yaml
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
 apiVersion: v1
+
+# 资源类型 - 服务
+# 用于将Pod暴露为网络服务
 kind: Service
+
+# 元数据
 metadata:
+  # Service名称 - 在namespace内必须唯一
   name: nginx-service
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: nginx
     environment: production
+
+  # 注解
   annotations:
     description: "Nginx web server service"
+
+# 规格说明
 spec:
+  # Service类型 - 定义服务暴露方式
+  # 可选值:
+  #   - ClusterIP: 集群内部访问 (默认)
+  #   - NodePort: 通过节点端口访问
+  #   - LoadBalancer: 通过云厂商负载均衡器
+  #   - ExternalName: 映射到外部域名
   type: ClusterIP
+
+  # 集群IP - Service的虚拟IP地址
+  # 如果不指定，系统会自动分配
+  # 可选值: 有效的IPv4地址, 或留空自动分配
   clusterIP: 10.96.0.100
+
+  # 选择器 - 指定哪些Pod归此Service管理
+  # Service会根据selector负载均衡到匹配的Pod
   selector:
+    # 标签键值对
     app: nginx
+
+  # 端口定义列表
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: 443
-    protocol: TCP
+    # 端口1: HTTP
+    - # 端口名称 - 用于标识端口
+      name: http
+
+      # Service端口 - ClusterIP监听的端口
+      # 客户端访问此端口
+      port: 80
+
+      # 目标端口 - 转发到的容器端口
+      # 可选值: 端口号(1-65535) 或 端口名称
+      targetPort: 80
+
+      # 协议
+      # 可选值: TCP, UDP, SCTP
+      protocol: TCP
+
+    # 端口2: HTTPS
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+
+  # 会话亲和性 - 是否保持客户端会话
+  # 可选值:
+  #   - None: 无亲和性 (默认)
+  #   - ClientIP: 基于客户端IP的亲和性
   sessionAffinity: None
+
+  # 会话亲和性配置
   sessionAffinityConfig:
+    # ClientIP配置
     clientIP:
+      # 超时时间 - 亲和性保持时长
+      # 可选值: 秒数 (通常设为10800=3小时)
       timeoutSeconds: 10800
 ```
 
@@ -578,8 +634,14 @@ spec:
 
 ```yaml
 # service-nodeport.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: Service
+
+# 元数据
 metadata:
   name: nginx-service
   namespace: default
@@ -588,22 +650,49 @@ metadata:
     environment: production
   annotations:
     description: "Nginx web server service"
+
+# 规格说明
 spec:
+  # Service类型
+  # NodePort: 通过<NodeIP>:<NodePort>访问
   type: NodePort
+
+  # 选择器
   selector:
     app: nginx
+
+  # 端口定义
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    nodePort: 30080
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: 443
-    nodePort: 30443
-    protocol: TCP
+    # HTTP端口
+    - name: http
+
+      # Service端口
+      port: 80
+
+      # 目标端口
+      targetPort: 80
+
+      # NodePort - 节点上暴露的端口
+      # 可选值: 30000-32767
+      # 如果不指定，Kubernetes自动分配
+      nodePort: 30080
+
+      protocol: TCP
+
+    # HTTPS端口
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443
+      protocol: TCP
+
+  # 会话亲和性
   sessionAffinity: None
+
+  # 外部流量策略
+  # 可选值:
+  #   - Cluster: 流量分布到所有节点 (默认)
+  #   - Local: 流量只到有对应Pod的节点
   externalTrafficPolicy: Cluster
 ```
 
@@ -611,31 +700,56 @@ spec:
 
 ```yaml
 # service-loadbalancer.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: Service
+
+# 元数据
 metadata:
   name: nginx-service
   namespace: default
   labels:
     app: nginx
     environment: production
+
+  # 注解 - 云厂商特定配置
   annotations:
     description: "Nginx web server service"
+
+    # AWS云负载均衡器类型
+    # 可选值: "nlb" (网络负载均衡器), "elb" (经典负载均衡器)
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+    # 跨区域负载均衡 - 是否允许流量分发到其他可用区
+    # 可选值: "true", "false"
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
+# 规格说明
 spec:
+  # Service类型
+  # LoadBalancer: 通过云厂商负载均衡器暴露
   type: LoadBalancer
+
+  # 选择器
   selector:
     app: nginx
+
+  # 端口定义
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: 443
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+
+  # 会话亲和性
   sessionAffinity: None
   externalTrafficPolicy: Cluster
   loadBalancerIP: ""
@@ -646,19 +760,41 @@ spec:
 
 ```yaml
 # service-externalname.yaml
+
+# Kubernetes API 版本
 apiVersion: v1
+
+# 资源类型
 kind: Service
+
+# 元数据
 metadata:
+  # Service名称
   name: external-database
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: database
     environment: production
+
+  # 注解
   annotations:
     description: "External database service"
+
+# 规格说明
 spec:
+  # Service类型
+  # ExternalName: 映射到外部域名 (CNAME记录)
   type: ExternalName
+
+  # 外部域名 - 要映射到的目标域名
+  # 客户端访问此Service时会被解析到此域名
   externalName: database.example.com
+
+  # 会话亲和性
   sessionAffinity: None
 ```
 
@@ -670,84 +806,183 @@ spec:
 
 ```yaml
 # ingress-hostname.yaml
+
+# Kubernetes API 版本 - 网络API组
+# 可选值: networking.k8s.io/v1, networking.k8s.io/v1beta1
 apiVersion: networking.k8s.io/v1
+
+# 资源类型 - HTTP/HTTPS路由
 kind: Ingress
+
+# 元数据
 metadata:
+  # Ingress名称
   name: nginx-ingress
+
+  # 所属namespace
   namespace: default
+
+  # 标签
   labels:
     app: nginx
     environment: production
+
+  # 注解 - Ingress控制器特定配置
   annotations:
+    # 路径重写目标
+    # 可选值: 字符串，如 "/", "/$2"
     nginx.ingress.kubernetes.io/rewrite-target: /
+
+    # SSL重定向
+    # 可选值: "true", "false"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # 证书管理器 - 用于自动签发SSL证书
+    # 可选值: "letsencrypt-prod", "letsencrypt-staging"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# 规格说明
 spec:
+  # Ingress类名 - 指定使用的Ingress控制器
+  # 可选值: nginx, traefik, envoy, 或其他已安装的IngressClass
   ingressClassName: nginx
+
+  # TLS配置列表 - HTTPS证书
   tls:
-  - hosts:
-    - app1.example.com
-    secretName: app1-tls
-  - hosts:
-    - app2.example.com
-    secretName: app2-tls
+    # TLS配置1
+    - # 需要TLS的主机名列表
+      hosts:
+        # 示例: app1.example.com
+        - app1.example.com
+
+      # 证书密钥名称 - 引用Secret
+      secretName: app1-tls
+
+    # TLS配置2
+    - hosts:
+        - app2.example.com
+      secretName: app2-tls
+
+  # 规则列表 - 定义路由规则
   rules:
-  - host: app1.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: app1-service
-            port:
-              number: 80
-  - host: app2.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: app2-service
-            port:
-              number: 80
+    # 规则1: app1.example.com
+    - # 主机名 - 匹配请求的Host头
+      # 可选值: 域名, 或空 (匹配所有)
+      host: app1.example.com
+
+      # HTTP规则
+      http:
+        # 路径列表
+        paths:
+          # 路径配置
+          - # 路径前缀
+            # 可选值: 任何路径字符串
+            path: /
+
+            # 路径类型
+            # 可选值:
+            #   - Prefix: 前缀匹配 (最常用)
+            #   - Exact: 精确匹配
+            #   - ImplementationSpecific: 由IngressClass决定
+            pathType: Prefix
+
+            # 后端服务
+            backend:
+              service:
+                # 服务名称
+                name: app1-service
+
+                # 服务端口
+                port:
+                  # 端口号
+                  number: 80
+
+    # 规则2: app2.example.com
+    - host: app2.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app2-service
+                port:
+                  number: 80
 ```
 
 ### 4.4.2 基于路径的Ingress配置
 
 ```yaml
 # ingress-path.yaml
+
+# Kubernetes API 版本
 apiVersion: networking.k8s.io/v1
+
+# 资源类型
 kind: Ingress
+
+# 元数据
 metadata:
   name: nginx-ingress
   namespace: default
   labels:
     app: nginx
     environment: production
+
+  # 注解
   annotations:
+    # 路径重写 - 将匹配到的路径部分重写到目标
+    # $2 表示第二个捕获组
+    # 可选值: 字符串，如 "/$2"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+
+    # SSL重定向
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # 证书颁发者
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# 规格说明
 spec:
+  # Ingress类名
   ingressClassName: nginx
+
+  # TLS配置
   tls:
-  - hosts:
-    - app.example.com
-    secretName: app-tls
+    - hosts:
+        # 示例: app.example.com
+        - app.example.com
+      secretName: app-tls
+
+  # 规则列表
   rules:
-  - host: app.example.com
-    http:
-      paths:
-      - path: /api(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-      - path: /web(/|$)(.*)
+    - host: app.example.com
+      http:
+        paths:
+          # API路径 - 使用正则匹配
+          - # 路径模式
+            # (/|$)(.*) 匹配 /api/* 或 /api
+            path: /api(/|$)(.*)
+
+            # 路径类型
+            # ImplementationSpecific: 由IngressClass决定如何处理
+            pathType: ImplementationSpecific
+
+            # 后端服务
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+
+          # Web路径
+          - path: /web(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
         pathType: ImplementationSpecific
         backend:
           service:

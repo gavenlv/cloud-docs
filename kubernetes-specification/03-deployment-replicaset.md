@@ -230,72 +230,159 @@ ReplicaSet与Deployment的关系：
 
 ```yaml
 # deployment-basic.yaml
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2, apps/v2alpha1
 apiVersion: apps/v1
+
+# 资源类型 - 无状态工作负载
+# 可选值:
+#   - Deployment: 无状态应用 (常用)
+#   - StatefulSet: 有状态应用
+#   - DaemonSet: 每节点一个Pod
+#   - ReplicaSet: Deployment的底层副本控制器
 kind: Deployment
+
+# 元数据
 metadata:
+  # Deployment名称 - 在namespace内必须唯一
   name: nginx-deployment
+
+  # 所属namespace
   namespace: default
+
+  # 标签 - 用于分组和选择
   labels:
+    # 应用标签
     app: nginx
+    # 环境标签
     environment: production
+
+  # 注解 - 非标识信息
   annotations:
     description: "Nginx web server deployment"
+
+# 规格说明
 spec:
+  # 副本数 - 期望运行的Pod数量
+  # 可选值: 正整数
   replicas: 3
+
+  # 选择器 - 识别属于此Deployment的Pod
+  # 必须匹配template.metadata.labels
   selector:
     matchLabels:
+      # 标签键值对
       app: nginx
+
+  # Pod模板
   template:
     metadata:
       labels:
+        # Pod标签 - 会被selector匹配
         app: nginx
         environment: production
+
     spec:
+      # 容器列表
       containers:
-      - name: nginx
-        image: nginx:1.25.0
-        ports:
-        - containerPort: 80
-          protocol: TCP
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        env:
-        - name: ENVIRONMENT
-          value: "production"
-        - name: LOG_LEVEL
-          value: "info"
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 3
+        - # 容器名称
+          name: nginx
+
+          # 容器镜像
+          # 格式: 镜像:标签
+          # 可选值:
+          #   - nginx:1.25.0 (指定版本)
+          #   - nginx:latest (最新)
+          #   - nginx:alpine (轻量)
+          image: nginx:1.25.0
+
+          # 端口配置
+          ports:
+            - # 容器端口
+              containerPort: 80
+              # 协议
+              protocol: TCP
+
+          # 资源限制
+          resources:
+            requests:
+              # CPU请求
+              # 可选值: 100m, 500m, 1
+              cpu: 100m
+              # 内存请求
+              # 可选值: 128Mi, 256Mi, 512Mi
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # 环境变量
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+
+          # 存活探针
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # 就绪探针
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+      # 重启策略
+      # 可选值: Always, OnFailure, Never
       restartPolicy: Always
+
+      # 优雅终止期限
       terminationGracePeriodSeconds: 30
+
+      # DNS策略
+      # 可选值: ClusterFirst, Default, ClusterFirstWithHostNet, None
       dnsPolicy: ClusterFirst
+
+  # 更新策略 - 定义如何更新Pod
   strategy:
+    # 更新类型
+    # 可选值:
+    #   - RollingUpdate: 滚动更新 (默认)
+    #   - Recreate: 重建更新 - 停止所有旧Pod后再启动新的
     type: RollingUpdate
+
+    # 滚动更新参数
     rollingUpdate:
+      # 最大不可用Pod数 - 可以是绝对值或百分比
+      # 可选值: 数字, 百分比如25%
+      # 示例: 1 或 "25%"
       maxUnavailable: 25%
+
+      # 最大多余Pod数 - 超出期望的Pod数
+      # 可选值: 数字, 百分比如25%
       maxSurge: 25%
+
+  # 历史版本保留数 - 用于回滚
+  # 可选值: 正整数, 通常设为3-10
   revisionHistoryLimit: 10
+
+  # 进度超时时间 - Deployment完成的最大等待时间
+  # 超过后会被标记为失败
+  # 可选值: 秒数
   progressDeadlineSeconds: 600
 ```
 
