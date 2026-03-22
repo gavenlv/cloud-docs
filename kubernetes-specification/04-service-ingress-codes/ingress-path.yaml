@@ -1,0 +1,89 @@
+
+# Kubernetes API 版本
+apiVersion: networking.k8s.io/v1
+
+# 资源类型
+kind: Ingress
+
+# 元数据
+metadata:
+  name: nginx-ingress
+  namespace: default
+  labels:
+    app: nginx
+    environment: production
+
+  # 注解
+  annotations:
+    # 路径重写 - 将匹配到的路径部分重写到目标
+    # $2 表示第二个捕获组
+    # 可选值: 字符串，如 "/$2"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+
+    # SSL重定向
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # 证书颁发者
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# 规格说明
+spec:
+  # Ingress类名
+  ingressClassName: nginx
+
+  # TLS配置
+  tls:
+    - hosts:
+        # 示例: app.example.com
+        - app.example.com
+      secretName: app-tls
+
+  # 规则列表
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          # API路径 - 使用正则匹配
+          - # 路径模式
+            # (/|$)(.*) 匹配 /api/* 或 /api
+            path: /api(/|$)(.*)
+
+            # 路径类型
+            # ImplementationSpecific: 由IngressClass决定如何处理
+            pathType: ImplementationSpecific
+
+            # 后端服务
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+
+          # Web路径
+          - path: /web(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: web-service
+            port:
+              number: 80
+      - path: /static(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: static-service
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: default-service
+            port:
+              number: 80

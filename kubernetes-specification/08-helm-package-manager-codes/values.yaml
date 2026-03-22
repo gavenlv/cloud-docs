@@ -1,0 +1,79 @@
+
+# 副本数
+# 可选值: 正整数
+replicaCount: 3
+
+# 镜像配置
+image:
+  # 镜像仓库
+  repository: nginx
+  # 拉取策略
+  # 可选值: Always, IfNotPresent, Never
+  pullPolicy: IfNotPresent
+  # 镜像标签
+  # 如果为空，使用Chart的appVersion
+  tag: "1.25.0"
+
+# 镜像拉取密钥列表
+# 用于拉取私有镜像
+imagePullSecrets: []
+
+# 名称覆盖 - 替换Chart生成的完整名称
+nameOverride: ""
+
+# 全名覆盖 - 替换Chart生成的全名
+fullnameOverride: ""
+
+# 服务账户配置
+serviceAccount:
+  # 是否创建ServiceAccount
+  create: true
+
+  # 注解
+  annotations: {}
+
+  # 名称 - 如果为空，使用生成的名字
+  name: ""
+
+# Pod注解
+podAnnotations: {}
+
+# Pod安全上下文
+podSecurityContext: {}
+
+# 容器安全上下文
+securityContext: {}
+
+# 服务配置
+service:
+  # Service类型
+  # 可选值: ClusterIP, NodePort, LoadBalancer
+  type: ClusterIP
+
+  # 服务端口
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

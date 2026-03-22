@@ -1,0 +1,46 @@
+
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: /etc/kubernetes/scheduler.conf
+
+profiles:
+  - schedulerName: default-scheduler
+    plugins:
+      multiPoint:
+        enabled:
+          - name: PrioritySort
+          - name: NodeAffinity
+          - name: TaintToleration
+          - name: NodeResourcesFit
+          - name: VolumeBinding
+          - name: VolumeFiltering
+        disabled:
+          - name: "*"
+
+      queueSort:
+        enabled:
+          - name: PrioritySort
+
+      filter:
+        enabled:
+          - name: NodeUnschedulable
+          - name: NodeResourcesFit
+          - name: VolumeBinding
+          - name: VolumeZoneFiltering
+          - name: CustomSchedulerPlugin  # 自定义过滤插件
+
+      scoring:
+        enabled:
+          - name: NodeResourcesFit
+            weight: 1
+          - name: BalancedAllocation
+            weight: 1
+          - name: CustomSchedulerPlugin  # 自定义评分插件
+            weight: 2
+
+    pluginConfig:
+      - name: CustomSchedulerPlugin
+        args:
+          gpuLabel: gpu-type
+          maintenanceLabel: maintenance-mode

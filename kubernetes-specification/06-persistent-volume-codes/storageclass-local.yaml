@@ -1,0 +1,21 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+  namespace: default
+  labels:
+    app: app
+    environment: production
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+    description: "Local storage class"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+allowedTopologies:
+- matchLabelExpressions:
+  - key: kubernetes.io/hostname
+    values:
+    - node1
+    - node2
+    - node3

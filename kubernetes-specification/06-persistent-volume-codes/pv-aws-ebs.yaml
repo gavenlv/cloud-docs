@@ -1,0 +1,42 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: PersistentVolume
+
+# 元数据
+metadata:
+  name: aws-ebs-pv
+  namespace: default
+  labels:
+    app: app
+    environment: production
+  annotations:
+    description: "AWS EBS persistent volume"
+
+# 规格说明
+spec:
+  # 容量
+  capacity:
+    storage: 100Gi
+
+  # 访问模式 - EBS只支持单节点读写
+  accessModes:
+    - ReadWriteOnce
+
+  # 回收策略 - Delete会删除EBS卷
+  persistentVolumeReclaimPolicy: Delete
+
+  # 存储类名
+  storageClassName: aws-ebs-storage
+
+  # AWS EBS配置
+  awsElasticBlockStore:
+    # EBS卷ID
+    # 格式: vol-xxxxxxxxxxxxxxxxx
+    volumeID: vol-01234567890abcdef
+
+    # 文件系统类型
+    # 可选值: ext2, ext3, ext4, xfs, ntfs
+    fsType: ext4

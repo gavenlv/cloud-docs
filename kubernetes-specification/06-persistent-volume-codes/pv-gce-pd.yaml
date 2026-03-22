@@ -1,0 +1,41 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: PersistentVolume
+
+# 元数据
+metadata:
+  name: gce-pd-pv
+  namespace: default
+  labels:
+    app: app
+    environment: production
+  annotations:
+    description: "GCE PD persistent volume"
+
+# 规格说明
+spec:
+  # 容量
+  capacity:
+    storage: 100Gi
+
+  # 访问模式 - GCE PD只支持单节点读写
+  accessModes:
+    - ReadWriteOnce
+
+  # 回收策略 - Delete会删除PD
+  persistentVolumeReclaimPolicy: Delete
+
+  # 存储类名
+  storageClassName: gce-pd-storage
+
+  # GCE PD配置
+  gcePersistentDisk:
+    # PD名称 - GCE控制台中的磁盘名称
+    pdName: my-disk
+
+    # 文件系统类型
+    # 可选值: ext2, ext3, ext4, xfs
+    fsType: ext4

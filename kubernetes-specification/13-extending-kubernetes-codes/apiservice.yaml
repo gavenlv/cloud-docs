@@ -1,0 +1,30 @@
+
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1.mycompany.example.com
+spec:
+  # 扩展API的service地址
+  service:
+    name: my-extension-api
+    namespace: extension-system
+    port: 443
+
+  # API版本
+  version: v1
+
+  # 分组
+  group: mycompany.example.com
+
+  # 版本
+  versionPriority: 100
+
+  # 签名证书
+  caBundle: <base64-encoded-ca>
+
+  # 是否可用
+  availablePriorities:
+    - system-master
+
+  # 签名算法
+  insecureSkipTLSVerify: false

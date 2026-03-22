@@ -1,0 +1,125 @@
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2
+apiVersion: apps/v1
+
+# 资源类型 - Deployment
+# 可选值: Deployment, StatefulSet, DaemonSet
+kind: Deployment
+
+# 元数据 - 使用Helm模板函数生成名称
+metadata:
+  # 名称 - 从include函数获取完整名称
+  name: {{ include "myapp.fullname" . }}
+
+  # 标签 - 从include函数获取标签
+  labels:
+    # nindent函数用于缩进
+    {{- include "myapp.labels" . | nindent 4 }}
+
+# 规格说明
+spec:
+  # 条件判断 - 如果未启用自动扩缩容
+  {{- if not .Values.autoscaling.enabled }}
+  # 副本数 - 从values获取
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+
+  # 选择器
+  selector:
+    matchLabels:
+      # 从include函数获取选择器标签
+      {{- include "myapp.selectorLabels" . | nindent 6 }}
+
+  # Pod模板
+  template:
+    metadata:
+      # 条件注解 - 如果有podAnnotations
+      {{- with .Values.podAnnotations }}
+      annotations:
+        # toYaml将对象转为YAML格式
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # 标签
+      labels:
+        {{- include "myapp.selectorLabels" . | nindent 8 }}
+
+    spec:
+      # 镜像拉取密钥 - 如果有配置
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # 服务账户
+      serviceAccountName: {{ include "myapp.serviceAccountName" . }}
+
+      # Pod安全上下文
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      # 容器列表
+      containers:
+        - # 容器名称 - 从Chart名称获取
+          name: {{ .Chart.Name }}
+
+          # 安全上下文
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 10 }}
+
+          # 镜像 - 格式: 仓库:标签
+          # tag使用Values中的值，默认为Chart的AppVersion
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+
+          # 镜像拉取策略
+          # 可选值:
+          #   - Always: 总是拉取
+          #   - IfNotPresent: 本地有就用本地，没有就拉取
+          #   - Never: 从不拉取
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          # 端口配置
+          ports:
+            - # 端口名称
+              name: http
+              # 容器端口
+              containerPort: 80
+              # 协议
+              protocol: TCP
+
+          # 存活探针
+          livenessProbe:
+            httpGet:
+              # 探测路径
+              path: /
+              # 探测端口 - 使用端口名称
+              port: http
+
+          # 就绪探针
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+          # 资源限制
+          resources:
+            {{- toYaml .Values.resources | nindent 10 }}
+
+      # 节点选择器
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # 亲和性配置
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # 容忍配置 - 允许Pod调度到带污点的节点
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

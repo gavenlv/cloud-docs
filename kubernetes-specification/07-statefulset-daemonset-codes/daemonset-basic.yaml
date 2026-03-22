@@ -1,0 +1,149 @@
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2
+apiVersion: apps/v1
+
+# 资源类型 - DaemonSet
+# 确保每个节点上都运行一个Pod副本
+# 常用于日志收集、监控等系统服务
+# 可选值: DaemonSet, Deployment, StatefulSet
+kind: DaemonSet
+
+# 元数据
+metadata:
+  # DaemonSet名称
+  name: fluentd
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: fluentd
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Fluentd log collector daemonset"
+
+# 规格说明
+spec:
+  # 选择器 - 识别属于此DaemonSet的Pod
+  selector:
+    matchLabels:
+      app: fluentd
+
+  # Pod模板
+  template:
+    metadata:
+      labels:
+        app: fluentd
+        environment: production
+
+    spec:
+      # 服务账户 - 用于Pod访问Kubernetes API
+      serviceAccountName: fluentd
+
+      # 容器列表
+      containers:
+        - # 容器名称
+          name: fluentd
+
+          # 容器镜像
+          image: fluent/fluentd:v1.16-1
+
+          # 端口配置
+          ports:
+            # Fluentd forward端口 - 用于日志转发
+            - containerPort: 24224
+              name: forward
+              protocol: TCP
+
+            # Fluentd HTTP端口 - 用于监控
+            - containerPort: 24231
+              name: http
+              protocol: TCP
+
+          # 资源限制
+          resources:
+            requests:
+              # CPU请求
+              cpu: 100m
+              # 内存请求
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # 卷挂载
+          volumeMounts:
+            # var/log目录 - 只读
+            - name: varlog
+              mountPath: /var/log
+              # 只读挂载
+              readOnly: true
+
+            # Docker容器日志目录 - 只读
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+
+            # Fluentd配置文件
+            - name: fluentd-config
+              mountPath: /fluentd/etc/fluent.conf
+              # 子路径 - 只挂载卷中的特定文件
+              subPath: fluent.conf
+
+          # 环境变量
+          env:
+            # Fluentd配置文件名
+            - name: FLUENTD_CONF
+              value: fluent.conf
+
+            # Fluentd选项
+            - name: FLUENTD_OPT
+              value: --no-supervisor
+
+      # 卷定义
+      volumes:
+        # var/log目录 - 使用宿主机路径
+        - name: varlog
+          hostPath:
+            # 宿主机上的路径
+            path: /var/log
+
+        # Docker容器日志目录
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+
+        # Fluentd配置 - 使用ConfigMap
+        - name: fluentd-config
+          configMap:
+            # ConfigMap名称
+            name: fluentd-config
+
+      # 优雅终止期限
+      terminationGracePeriodSeconds: 30
+
+      # DNS策略
+      # 可选值:
+      #   - ClusterFirst: 使用集群DNS (默认)
+      #   - Default: 使用节点DNS
+      #   - ClusterFirstWithHostNet: 使用集群DNS但使用宿主机网络
+      dnsPolicy: ClusterFirstWithHostNet
+
+      # 是否使用宿主机网络
+      hostNetwork: false
+
+  # 更新策略
+  updateStrategy:
+    # 更新类型 - DaemonSet通常使用RollingUpdate
+    type: RollingUpdate
+
+    # 最大不可用Pod数
+    rollingUpdate:
+      maxUnavailable: 1
+
+  # 历史版本限制
+  revisionHistoryLimit: 10

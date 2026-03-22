@@ -1,0 +1,50 @@
+
+# Kubernetes API 版本
+# 可选值: v1
+apiVersion: v1
+
+# 资源类型 - 持久化卷声明
+# PVC会向PV发起绑定请求
+kind: PersistentVolumeClaim
+
+# 元数据
+metadata:
+  # PVC名称 - 在namespace内必须唯一
+  name: app-pvc
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: app
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Application persistent volume claim"
+
+# 规格说明
+spec:
+  # 访问模式 - 必须与PV匹配
+  # 可选值: ReadWriteOnce, ReadOnlyMany, ReadWriteMany
+  accessModes:
+    - ReadWriteOnce
+
+  # 资源请求
+  resources:
+    requests:
+      # 请求的存储大小
+      # 必须小于等于PV容量
+      storage: 10Gi
+
+  # 存储类名 - 指定使用哪个存储类
+  # 可选值: standard, fast-ssd, local-storage, nfs
+  # 如果为空，使用默认存储类
+  storageClassName: standard
+
+  # 卷模式 - 定义卷的类型
+  # 可选值:
+  #   - Filesystem: 文件系统 (默认)
+  #   - Block: 块设备
+  volumeMode: Filesystem

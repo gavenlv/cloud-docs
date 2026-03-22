@@ -1,0 +1,173 @@
+
+# Kubernetes API 版本 - 应用API组
+# 可选值: apps/v1, apps/v1beta1, apps/v1beta2
+apiVersion: apps/v1
+
+# 资源类型 - 有状态工作负载
+# 用于部署有状态应用，支持稳定的网络标识和持久存储
+# 可选值: StatefulSet, Deployment, DaemonSet
+kind: StatefulSet
+
+# 元数据
+metadata:
+  # StatefulSet名称
+  name: web
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: web
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Web application statefulset"
+
+# 规格说明
+spec:
+  # 服务名 - 必须与Headless Service名称匹配
+  # StatefulSet使用此名称创建稳定的网络标识
+  serviceName: web
+
+  # 副本数 - 有状态Pod的数量
+  # Pod名称格式: <statefulset-name>-<ordinal>
+  # 示例: web-0, web-1, web-2
+  replicas: 3
+
+  # 选择器 - 识别属于此StatefulSet的Pod
+  selector:
+    matchLabels:
+      app: web
+
+  # Pod模板
+  template:
+    metadata:
+      labels:
+        app: web
+        environment: production
+
+    spec:
+      # 容器列表
+      containers:
+        - # 容器名称
+          name: web
+
+          # 容器镜像
+          image: nginx:1.25.0
+
+          # 端口配置
+          ports:
+            - # 容器端口
+              containerPort: 80
+              # 端口名称 - 用于Service引用
+              name: web
+
+          # 资源限制
+          resources:
+            requests:
+              # CPU请求
+              # 可选值: 100m, 500m, 1
+              cpu: 100m
+              # 内存请求
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # 环境变量
+          env:
+            # 从Pod字段引用环境变量
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  # 引用Pod名称
+                  fieldPath: metadata.name
+
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  # 引用Pod namespace
+                  fieldPath: metadata.namespace
+
+          # 卷挂载
+          volumeMounts:
+            - # 卷名称 - 引用volumeClaimTemplates
+              name: data
+              # 挂载路径
+              mountPath: /data
+
+          # 存活探针
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # 就绪探针
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+  # 卷声明模板 - 为每个Pod创建独立的PVC
+  # StatefulSet管理的Pod共享模板，但各自有独立的存储
+  volumeClaimTemplates:
+    - # 元数据
+      metadata:
+        # 卷声明名称 - 会被转换为 <volumeClaimTemplate-name>-<pod-name>
+        name: data
+        labels:
+          app: web
+          environment: production
+
+      # 规格说明
+      spec:
+        # 访问模式
+        # 可选值: ReadWriteOnce, ReadOnlyMany, ReadWriteMany
+        accessModes:
+          - ReadWriteOnce
+
+        # 资源请求
+        resources:
+          requests:
+            # 存储大小
+            storage: 10Gi
+
+        # 存储类名
+        # 可选值: standard, fast-ssd, local-storage
+        storageClassName: standard
+
+  # 更新策略
+  updateStrategy:
+    # 更新类型
+    # 可选值:
+    #   - RollingUpdate: 滚动更新 (默认)
+    #   - OnDelete: 删除时才更新
+    type: RollingUpdate
+
+    # 滚动更新参数
+    rollingUpdate:
+      # 分区 - 用于金丝雀发布
+      # 索引大于等于此值的Pod会被更新
+      # 示例: partition=2, 则 web-2, web-3... 会更新
+      partition: 0
+
+  # Pod管理策略
+  # 可选值:
+  #   - OrderedReady: 有序启动/删除 (默认)
+  #   - Parallel: 并行启动/删除
+  podManagementPolicy: OrderedReady
+
+  # 历史版本限制 - 回滚用
+  revisionHistoryLimit: 10

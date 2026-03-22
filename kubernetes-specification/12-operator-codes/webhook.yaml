@@ -1,0 +1,45 @@
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: myapp-mutating-webhook
+webhooks:
+  - name: myapp.example.com
+    clientConfig:
+      service:
+        name: myapp-operator
+        namespace: operators
+        path: /mutate-myapp
+      caBundle: <base64-encoded-ca>
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["example.com"]
+        apiVersions: ["v1"]
+        resources: ["myapps"]
+    sideEffects: None
+    timeoutSeconds: 10
+    admissionReviewVersions: ["v1", "v1beta1"]
+    failurePolicy: Fail
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: myapp-validating-webhook
+webhooks:
+  - name: myapp.example.com
+    clientConfig:
+      service:
+        name: myapp-operator
+        namespace: operators
+        path: /validate-myapp
+      caBundle: <base64-encoded-ca>
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["example.com"]
+        apiVersions: ["v1"]
+        resources: ["myapps"]
+    sideEffects: None
+    timeoutSeconds: 10
+    admissionReviewVersions: ["v1", "v1beta1"]
+    failurePolicy: Fail

@@ -1,0 +1,48 @@
+
+# Kubernetes API 版本
+# 可选值: v1
+apiVersion: v1
+
+# 资源类型 - Service
+kind: Service
+
+# 元数据
+metadata:
+  # Service名称 - 必须与StatefulSet的serviceName匹配
+  name: web
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: web
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Web application headless service"
+
+# 规格说明
+spec:
+  # 集群IP - None表示Headless Service
+  # Headless Service不提供负载均衡，而是让客户端自己选择Pod
+  clusterIP: None
+
+  # 选择器 - 指定哪些Pod归此Service管理
+  selector:
+    app: web
+
+  # 端口配置
+  ports:
+    - # 端口名称
+      name: web
+      # Service端口
+      port: 80
+      # 目标端口
+      targetPort: 80
+      # 协议
+      protocol: TCP
+
+  # 会话亲和性
+  sessionAffinity: None

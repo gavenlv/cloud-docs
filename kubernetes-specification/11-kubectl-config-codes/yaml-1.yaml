@@ -1,0 +1,38 @@
+
+apiVersion: v1
+kind: Config
+
+# 集群配置 - 定义Kubernetes集群信息
+clusters:
+- name: kubernetes                  # 集群名称（唯一标识）
+  cluster:
+    certificate-authority-data: xxx # Base64编码的CA证书
+    # 或者使用本地CA文件：
+    # certificate-authority: /path/to/ca.crt
+    server: https://192.168.1.100:6443  # API Server地址
+
+# 用户配置 - 定义认证信息
+users:
+- name: kubernetes-admin           # 用户名称（唯一标识）
+  user:
+    # 方式1：客户端证书认证
+    client-certificate-data: xxx    # Base64编码的客户端证书
+    client-key-data: xxx            # Base64编码的客户端私钥
+    # 或者使用本地证书文件：
+    # client-certificate: /path/to/admin.crt
+    # client-key: /path/to/admin.key
+
+    # 方式2：Token认证
+    # token: xxxxxxxxxxxxxxxxxxxxxxxx
+
+    # 方式3：用户名密码（不推荐）
+    # username: admin
+    # password: password
+
+# 上下文配置 - 关联集群、用户和命名空间
+contexts:
+- name: kubernetes-admin@kubernetes  # 上下文名称（唯一标识）
+  context:
+    cluster: kubernetes              # 引用的集群名称
+    user: kubernetes-admin          # 引用的用户名称
+    namespace: default              # 默认命名空间（可选）

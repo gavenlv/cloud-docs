@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-volume-pod
+  namespace: default
+  labels:
+    app: configmap-volume
+    environment: production
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.25.0
+    volumeMounts:
+    - name: nginx-config
+      mountPath: /etc/nginx/nginx.conf
+      subPath: nginx.conf
+    - name: nginx-config
+      mountPath: /etc/nginx/conf.d/default.conf
+      subPath: default.conf
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  restartPolicy: Always
+  volumes:
+  - name: nginx-config
+    configMap:
+      name: nginx-config
+      items:
+      - key: nginx.conf
+        path: nginx.conf
+      - key: default.conf
+        path: default.conf

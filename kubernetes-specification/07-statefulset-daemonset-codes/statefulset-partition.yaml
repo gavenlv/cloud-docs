@@ -1,0 +1,83 @@
+
+# Kubernetes API 版本
+apiVersion: apps/v1
+
+# 资源类型 - StatefulSet
+kind: StatefulSet
+
+# 元数据
+metadata:
+  name: web
+  namespace: default
+  labels:
+    app: web
+    environment: production
+
+# 规格说明
+spec:
+  # 服务名
+  serviceName: web
+
+  # 副本数
+  replicas: 3
+
+  # 选择器
+  selector:
+    matchLabels:
+      app: web
+
+  # Pod模板
+  template:
+    metadata:
+      labels:
+        app: web
+        environment: production
+
+    spec:
+      # 容器列表
+      containers:
+        - # 容器名称
+          name: web
+          # 镜像版本更新到1.26.0
+          image: nginx:1.26.0
+          # 端口配置
+          ports:
+            - containerPort: 80
+              name: web
+          # 资源限制
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # 卷挂载
+          volumeMounts:
+            - name: data
+              mountPath: /data
+
+  # 卷声明模板
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: standard
+
+  # 更新策略
+  updateStrategy:
+    # 滚动更新
+    type: RollingUpdate
+
+    # 分区更新 - 只更新索引大于等于partition的Pod
+    # 这里设为2, 所以只有web-2会更新
+    rollingUpdate:
+      partition: 2
+
+  # Pod管理策略
+  podManagementPolicy: OrderedReady

@@ -1,0 +1,33 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: PersistentVolumeClaim
+
+# 元数据
+metadata:
+  name: app-pvc
+  namespace: default
+  labels:
+    app: app
+    environment: production
+  annotations:
+    description: "Application persistent volume claim with read-only access"
+
+# 规格说明
+spec:
+  # 访问模式 - 只读需要PV支持
+  accessModes:
+    - ReadOnlyMany
+
+  # 资源请求
+  resources:
+    requests:
+      storage: 10Gi
+
+  # 存储类名
+  storageClassName: standard
+
+  # 卷模式
+  volumeMode: Filesystem

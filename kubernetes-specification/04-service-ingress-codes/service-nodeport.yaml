@@ -1,0 +1,60 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: Service
+
+# 元数据
+metadata:
+  name: nginx-service
+  namespace: default
+  labels:
+    app: nginx
+    environment: production
+  annotations:
+    description: "Nginx web server service"
+
+# 规格说明
+spec:
+  # Service类型
+  # NodePort: 通过<NodeIP>:<NodePort>访问
+  type: NodePort
+
+  # 选择器
+  selector:
+    app: nginx
+
+  # 端口定义
+  ports:
+    # HTTP端口
+    - name: http
+
+      # Service端口
+      port: 80
+
+      # 目标端口
+      targetPort: 80
+
+      # NodePort - 节点上暴露的端口
+      # 可选值: 30000-32767
+      # 如果不指定，Kubernetes自动分配
+      nodePort: 30080
+
+      protocol: TCP
+
+    # HTTPS端口
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443
+      protocol: TCP
+
+  # 会话亲和性
+  sessionAffinity: None
+
+  # 外部流量策略
+  # 可选值:
+  #   - Cluster: 流量分布到所有节点 (默认)
+  #   - Local: 流量只到有对应Pod的节点
+  externalTrafficPolicy: Cluster

@@ -1,0 +1,30 @@
+appName: myshop
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.25.0"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+dbName: shopdb
+dbUsername: shopuser
+dbPassword: shoppassword
+
+logLevel: info
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "secretpassword"
+    database: "shopdb"

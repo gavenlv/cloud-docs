@@ -920,6 +920,593 @@ helm install myapp ./myapp \
 
 ---
 
+## 8.4 Helm 实战练习 - 一步步部署 Web 应用
+
+### 8.4.1 环境准备
+
+```bash
+# 1. 检查 Helm 是否已安装
+helm version
+
+# 输出示例：
+# version.BuildInfo{Version:"v3.14.0", GitCommit:"xxxxx", GitTreeState:"clean", GoVersion:"go1.21"}
+
+# 2. 如果没有安装，请先安装 Helm
+# macOS:
+brew install helm
+
+# Windows (使用 Chocolatey):
+choco install kubernetes-helm
+
+# Linux:
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# 3. 添加常用的 Chart 仓库
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add prometheus https://prometheus-community.github.io/helm-charts
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+# 4. 更新仓库索引
+helm repo update
+
+# 5. 查看已添加的仓库
+helm repo list
+
+# 输出：
+# NAME            URL
+# bitnami         https://charts.bitnami.com/bitnami
+# prometheus      https://prometheus-community.github.io/helm-charts
+# ingress-nginx   https://kubernetes.github.io/ingress-nginx
+```
+
+### 8.4.2 方式一：使用现成 Chart 部署应用
+
+#### 步骤1：搜索 Chart
+
+```bash
+# 搜索 Nginx Chart
+helm search repo nginx
+
+# 输出：
+# NAME                    CHART VERSION   APP VERSION     DESCRIPTION
+# bitnami/nginx           15.x.x          1.25.x          Chart for nginx
+# bitnami/nginx-ingress-controller 9.x.x   1.9.x          NGINX Ingress Controller
+
+# 搜索 MySQL Chart
+helm search repo mysql
+
+# 输出：
+# NAME                    CHART VERSION   APP VERSION     DESCRIPTION
+# bitnami/mysql           9.x.x           8.0.x           Chart for MySQL
+```
+
+#### 步骤2：查看 Chart 详细信息
+
+```bash
+# 查看 Chart 的所有可配置参数
+helm show values bitnami/nginx
+
+# 输出（部分）：
+# replicaCount: 1
+# image:
+#   registry: docker.io
+#   repository: bitnami/nginx
+#   tag: 1.25.0
+#   pullPolicy: IfNotPresent
+# service:
+#   type: LoadBalancer
+#   port: 80
+# ingress:
+#   enabled: false
+# ...
+```
+
+#### 步骤3：安装 Chart
+
+```bash
+# 基本安装
+helm install my-nginx bitnami/nginx
+
+# 输出：
+# NAME: my-nginx
+# LAST DEPLOYED: Sun Mar 22 21:00:00 2026
+# NAMESPACE: default
+# STATUS: deployed
+# REVISION: 1
+# TEST SUITE: None
+
+# 查看安装的 Release
+helm list
+
+# 查看 Pod 状态
+kubectl get pods
+
+# 输出：
+# NAME                               READY   STATUS    RESTARTS   AGE
+# my-nginx-nginx-86d56df7b9-xxxxx    1/1     Running   0          30s
+
+# 查看 Service
+kubectl get svc
+
+# 输出：
+# NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+# my-nginx-nginx  LoadBalancer   10.96.xxx.xxx    localhost     80:30000/TCP   30s
+```
+
+#### 步骤4：自定义配置安装
+
+```bash
+# 创建自定义配置文件 my-values.yaml
+# my-values.yaml
+replicaCount: 3
+service:
+  type: NodePort
+  nodePorts:
+    http: 30080
+ingress:
+  enabled: true
+  hostname: myapp.example.com
+
+# 使用自定义配置安装
+helm install my-nginx bitnami/nginx --values my-values.yaml
+
+# 或者使用 --set 参数覆盖单个值
+helm install my-nginx bitnami/nginx \
+  --set replicaCount=2 \
+  --set service.type=NodePort
+```
+
+#### 步骤5：升级和回滚
+
+```bash
+# 升级到新版本或更新配置
+helm upgrade my-nginx bitnami/nginx --set replicaCount=5
+
+# 查看 Release 历史
+helm history my-nginx
+
+# 输出：
+# REVISION        UPDATED                         STATUS          CHART           APP VERSION     DESCRIPTION
+# 1               Sun Mar 22 21:00:00 2026        deployed        nginx-15.x.x     1.25.x          Install complete
+# 2               Sun Mar 22 21:05:00 2026        deployed        nginx-15.x.x     1.25.x          Upgrade complete
+
+# 回滚到上一个版本
+helm rollback my-nginx
+
+# 回滚到指定版本
+helm rollback my-nginx 1
+
+# 查看回滚结果
+helm history my-nginx
+
+# 输出：
+# REVISION        UPDATED                         STATUS          CHART           APP VERSION     DESCRIPTION
+# 1               Sun Mar 22 21:00:00 2026        superseded      nginx-15.x.x     1.25.x          Install complete
+# 2               Sun Mar 22 21:05:00 2026        superseded      nginx-15.x.x     1.25.x          Upgrade complete
+# 3               Sun Mar 22 21:10:00 2026        deployed        nginx-15.x.x     1.25.x          Rollback to 1
+```
+
+#### 步骤6：卸载
+
+```bash
+# 卸载 Release
+helm uninstall my-nginx
+
+# 输出：
+# release "my-nginx" uninstalled
+
+# 确认已卸载
+helm list
+```
+
+### 8.4.3 方式二：创建自己的 Chart
+
+#### 步骤1：创建 Chart
+
+```bash
+# 创建新的 Chart
+helm create mywebapp
+
+# 查看创建的 Chart 结构
+ls -la mywebapp/
+
+# 输出：
+# mywebapp/
+# ├── Chart.yaml
+# ├── charts/
+# ├── .helmignore
+# ├── values.yaml
+# ├── templates/
+# │   ├── deployment.yaml
+# │   ├── _helpers.tpl
+# │   ├── ingress.yaml
+# │   ├── NOTES.txt
+# │   ├── serviceaccount.yaml
+# │   ├── service.yaml
+# │   └── tests/
+# │       └── test-connection.yaml
+# └── README.md
+```
+
+#### 步骤2：修改 Chart.yaml
+
+```yaml
+# Chart.yaml
+apiVersion: v2
+name: mywebapp
+description: 我的第一个 Helm Chart - Web 应用
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - webapp
+  - nginx
+maintainers:
+  - name: Your Name
+    email: your@email.com
+```
+
+#### 步骤3：编写 values.yaml
+
+```yaml
+# values.yaml
+
+# 应用名称
+appName: mywebapp
+
+# 副本数
+replicaCount: 2
+
+# 镜像配置
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25.0"
+
+# 端口配置
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+# Ingress 配置
+ingress:
+  enabled: true
+  className: nginx
+  hostname: mywebapp.example.com
+  path: /
+  pathType: Prefix
+
+# 资源配置
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# 环境变量
+env:
+  - name: ENV
+    value: production
+  - name: LOG_LEVEL
+    value: info
+```
+
+#### 步骤4：编写模板文件
+
+```yaml
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+    version: {{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+        version: {{ .Chart.Version }}
+    spec:
+      containers:
+        - name: {{ .Values.appName }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 10 }}
+```
+
+```yaml
+# templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+  selector:
+    app: {{ .Values.appName }}
+```
+
+```yaml
+# templates/ingress.yaml
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.hostname | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path }}
+            pathType: {{ .Values.ingress.pathType }}
+            backend:
+              service:
+                name: {{ .Values.appName }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}
+```
+
+#### 步骤5：验证模板
+
+```bash
+# 本地调试 - 查看渲染后的模板
+helm template mywebapp ./mywebapp
+
+# 验证 Chart 语法
+helm lint ./mywebapp
+
+# 输出：
+# ==> Linting ./mywebapp
+# [INFO] Chart.yaml: icon is recommended
+# ==> Linting ./mywebapp
+# 1 chart(s) linted, 0 chart(s) failed, 0 chart(s) warning
+```
+
+#### 步骤6：安装和测试
+
+```bash
+# 安装 Chart（开发环境）
+helm install mywebapp ./mywebapp --dry-run --debug
+
+# 实际安装
+helm install mywebapp ./mywebapp
+
+# 查看安装状态
+helm status mywebapp
+
+# 查看 Pod
+kubectl get pods -l app=mywebapp
+
+# 查看 Service
+kubectl get svc mywebapp
+
+# 查看 Ingress
+kubectl get ingress mywebapp
+
+# 测试访问（端口转发）
+kubectl port-forward svc/mywebapp 8080:80
+
+# 在另一个终端测试
+curl http://localhost:8080
+```
+
+#### 步骤7：打包和分发
+
+```bash
+# 打包 Chart
+helm package ./mywebapp
+
+# 输出：
+# Successfully packaged chart and saved it to: /path/to/mywebapp-1.0.0.tgz
+
+# 创建（或更新）索引文件
+helm repo index . --url https://charts.example.com/
+
+# 上传到 Chart 仓库（需要 chartmuseum 或其他工具）
+# helm cm-push mywebapp-1.0.0.tgz myrepo
+```
+
+### 8.4.4 实战：部署包含多资源的完整应用
+
+#### 创建电商应用 Chart
+
+```bash
+# 创建 Chart
+helm create myshop
+cd myshop
+```
+
+#### 编辑 Chart.yaml 添加依赖
+
+```yaml
+# Chart.yaml
+apiVersion: v2
+name: myshop
+description: 电商应用 Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: 12.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+```
+
+#### 创建 ConfigMap
+
+```yaml
+# templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.appName }}-config
+data:
+  DATABASE_HOST: "{{ .Values.appName }}-postgresql"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "{{ .Values.dbName }}"
+  LOG_LEVEL: "{{ .Values.logLevel }}"
+```
+
+#### 创建 Deployment
+
+```yaml
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.appName }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.appName }}-config
+            - secretRef:
+                name: {{ .Values.appName }}-secret
+          resources:
+            {{- toYaml .Values.resources | nindent 10 }}
+```
+
+#### 创建 Service
+
+```yaml
+# templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+  selector:
+    app: {{ .Values.appName }}
+```
+
+#### 创建 Secret
+
+```yaml
+# templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.appName }}-secret
+type: Opaque
+stringData:
+  DATABASE_USERNAME: {{ .Values.dbUsername | quote }}
+  DATABASE_PASSWORD: {{ .Values.dbPassword | quote }}
+```
+
+#### 编辑 values.yaml
+
+```yaml
+# values.yaml
+
+appName: myshop
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.25.0"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+dbName: shopdb
+dbUsername: shopuser
+dbPassword: shoppassword
+
+logLevel: info
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "secretpassword"
+    database: "shopdb"
+```
+
+#### 安装应用
+
+```bash
+# 更新依赖
+helm dependency build ./myshop
+
+# 安装
+helm install myshop ./myshop
+
+# 查看所有资源
+kubectl get all -l app=myshop
+
+# 查看 Pod 日志
+kubectl logs -l app=myshop
+
+# 升级（更新镜像版本）
+helm upgrade myshop ./myshop --set image.tag=1.25.1
+
+# 回滚
+helm rollback myshop
+
+# 卸载
+helm uninstall myshop
+```
+
+---
+
 ## 本章小结
 
 - Helm是Kubernetes的包管理器，用于简化应用部署和管理

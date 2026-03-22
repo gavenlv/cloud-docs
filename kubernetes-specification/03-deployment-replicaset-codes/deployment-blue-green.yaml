@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment-blue
+  namespace: default
+  labels:
+    app: nginx
+    environment: production
+    color: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: nginx
+        environment: production
+        color: blue
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25.0
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment-green
+  namespace: default
+  labels:
+    app: nginx
+    environment: production
+    color: green
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: nginx
+      color: green
+  template:
+    metadata:
+      labels:
+        app: nginx
+        environment: production
+        color: green
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.26.0
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: default
+  labels:
+    app: nginx
+    environment: production
+spec:
+  selector:
+    app: nginx
+    color: blue
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,50 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-config
+  namespace: kube-system
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    profiles:
+      - schedulerName: custom-scheduler
+        plugins:
+          filter:
+            enabled:
+              - name: CustomFilterPlugin
+          scoring:
+            enabled:
+              - name: CustomScorePlugin
+                weight: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-scheduler
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: scheduler
+      custom: "true"
+  template:
+    metadata:
+      labels:
+        component: scheduler
+        custom: "true"
+    spec:
+      containers:
+        - name: scheduler
+          image: my-custom-scheduler:v1.0
+          args:
+            - --config=/etc/kubernetes/scheduler-config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/kubernetes/
+      volumes:
+        - name: config
+          configMap:
+            name: scheduler-config

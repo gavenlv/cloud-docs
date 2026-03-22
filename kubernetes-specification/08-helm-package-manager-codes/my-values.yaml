@@ -1,0 +1,26 @@
+# my-values.yaml - 自定义配置示例
+
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.25.0"
+
+service:
+  type: NodePort
+  nodePorts:
+    http: 30080
+
+ingress:
+  enabled: true
+  hostname: myapp.example.com
+  path: /
+  pathType: Prefix
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

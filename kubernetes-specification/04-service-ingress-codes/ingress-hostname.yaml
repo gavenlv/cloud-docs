@@ -1,0 +1,102 @@
+
+# Kubernetes API 版本 - 网络API组
+# 可选值: networking.k8s.io/v1, networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
+
+# 资源类型 - HTTP/HTTPS路由
+kind: Ingress
+
+# 元数据
+metadata:
+  # Ingress名称
+  name: nginx-ingress
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: nginx
+    environment: production
+
+  # 注解 - Ingress控制器特定配置
+  annotations:
+    # 路径重写目标
+    # 可选值: 字符串，如 "/", "/$2"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+    # SSL重定向
+    # 可选值: "true", "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    # 证书管理器 - 用于自动签发SSL证书
+    # 可选值: "letsencrypt-prod", "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# 规格说明
+spec:
+  # Ingress类名 - 指定使用的Ingress控制器
+  # 可选值: nginx, traefik, envoy, 或其他已安装的IngressClass
+  ingressClassName: nginx
+
+  # TLS配置列表 - HTTPS证书
+  tls:
+    # TLS配置1
+    - # 需要TLS的主机名列表
+      hosts:
+        # 示例: app1.example.com
+        - app1.example.com
+
+      # 证书密钥名称 - 引用Secret
+      secretName: app1-tls
+
+    # TLS配置2
+    - hosts:
+        - app2.example.com
+      secretName: app2-tls
+
+  # 规则列表 - 定义路由规则
+  rules:
+    # 规则1: app1.example.com
+    - # 主机名 - 匹配请求的Host头
+      # 可选值: 域名, 或空 (匹配所有)
+      host: app1.example.com
+
+      # HTTP规则
+      http:
+        # 路径列表
+        paths:
+          # 路径配置
+          - # 路径前缀
+            # 可选值: 任何路径字符串
+            path: /
+
+            # 路径类型
+            # 可选值:
+            #   - Prefix: 前缀匹配 (最常用)
+            #   - Exact: 精确匹配
+            #   - ImplementationSpecific: 由IngressClass决定
+            pathType: Prefix
+
+            # 后端服务
+            backend:
+              service:
+                # 服务名称
+                name: app1-service
+
+                # 服务端口
+                port:
+                  # 端口号
+                  number: 80
+
+    # 规则2: app2.example.com
+    - host: app2.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app2-service
+                port:
+                  number: 80

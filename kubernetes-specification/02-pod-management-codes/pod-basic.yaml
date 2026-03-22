@@ -1,0 +1,211 @@
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
+apiVersion: v1
+
+# 资源类型 - Pod是最基本的调度单位
+# 可选值: Pod, Service, Deployment, etc.
+kind: Pod
+
+# 元数据 - 用于标识和组织资源
+metadata:
+  # Pod名称 - 在namespace内必须唯一
+  # 命名规范: 小写字母、数字、连字符(-)
+  name: nginx-pod
+
+  # 所属namespace - 用于资源隔离
+  # 可选值: default, kube-system, 或自定义namespace
+  namespace: default
+
+  # 标签 - 用于资源选择和分组
+  # 格式: key:value, key可包含字母、数字、-、_、.
+  labels:
+    # 应用标签
+    # 示例: app: nginx, web, frontend
+    app: nginx
+
+    # 环境标签
+    # 可选值: dev, test, staging, production
+    environment: production
+
+  # 注解 - 存储非标识信息
+  # 与labels的区别: 注解不能用于选择资源
+  annotations:
+    # 描述信息 - 自由格式文本
+    description: "Nginx web server"
+
+# 规格说明 - 定义Pod的具体配置
+spec:
+  # 容器列表 - Pod可以包含一个或多个容器
+  # 通常只放一个主容器(边车模式可以有多个)
+  containers:
+    # 第一个容器配置
+    - # 容器名称 - 在Pod内必须唯一
+      # 命名规范: 小写字母、数字、连字符
+      name: nginx
+
+      # 容器镜像
+      # 格式: 镜像:标签 或 镜像@sha256:摘要
+      # 可选值:
+      #   - nginx:1.25.0 (指定版本)
+      #   - nginx:latest (最新版本)
+      #   - nginx:alpine (轻量版本)
+      image: nginx:1.25.0
+
+      # 端口配置
+      ports:
+        # 端口列表
+        - # 容器端口 - Pod内部监听的端口
+          # 可选值: 1-65535
+          containerPort: 80
+
+          # 协议类型
+          # 可选值: TCP, UDP, SCTP
+          protocol: TCP
+
+      # 资源限制 - CPU和内存的请求/限制
+      resources:
+        # 请求 - 调度时需要的最小资源
+        requests:
+          # CPU请求 - Kubernetes调度器使用
+          # 格式: 核心数 或 毫核(m)
+          # 可选值:
+          #   - 100m = 0.1核
+          #   - 500m = 0.5核
+          #   - 1 = 1核
+          cpu: 100m
+
+          # 内存请求
+          # 格式: Gi, Mi, Ki
+          # 可选值:
+          #   - 128Mi = 128兆字节
+          #   - 256Mi = 256兆字节
+          #   - 512Mi = 512兆字节
+          memory: 128Mi
+
+        # 限制 - 容器可以使用的最大资源
+        limits:
+          # CPU限制 - 超过可能被限制
+          cpu: 500m
+
+          # 内存限制 - 超过会被OOM Kill
+          memory: 512Mi
+
+      # 环境变量 - 传递给容器的键值对
+      env:
+        # 环境变量列表
+        - # 变量名称
+          name: ENVIRONMENT
+
+          # 变量值
+          value: "production"
+
+        - name: LOG_LEVEL
+          value: "info"
+
+      # 卷挂载 - 将存储挂载到容器
+      volumeMounts:
+        # 挂载配置
+        - # 卷名称 - 引用spec.volumes中定义的卷
+          name: nginx-config
+
+          # 挂载路径 - 容器内的目标路径
+          mountPath: /etc/nginx/nginx.conf
+
+          # 子路径 - 只挂载卷中的特定文件
+          subPath: nginx.conf
+
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+
+      # 存活探针 - 检测容器是否存活
+      # 失败会重启容器
+      livenessProbe:
+        # HTTP GET探测
+        httpGet:
+          # 探测路径
+          path: /
+          # 探测端口 (端口号或端口名称)
+          port: 80
+
+        # 初始化延迟 - 容器启动后多久开始探测
+        initialDelaySeconds: 30
+
+        # 探测间隔 - 每次探测的间隔
+        periodSeconds: 10
+
+        # 超时时间
+        timeoutSeconds: 5
+
+        # 成功阈值 - 连续成功次数才算成功
+        successThreshold: 1
+
+        # 失败阈值 - 连续失败次数后重启
+        failureThreshold: 3
+
+      # 就绪探针 - 检测是否可以接收流量
+      # 失败会从Service中移除
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 3
+        successThreshold: 1
+        failureThreshold: 3
+
+      # 启动探针 - 容器启动期间的探测
+      # 成功后才开始存活和就绪探针
+      startupProbe:
+        httpGet:
+          path: /
+          port: 80
+
+        initialDelaySeconds: 0
+        periodSeconds: 10
+        timeoutSeconds: 3
+        successThreshold: 1
+        failureThreshold: 30
+
+  # 重启策略 - 容器终止后的行为
+  # 可选值:
+  #   - Always: 总是重启 (默认)
+  #   - OnFailure: 仅在失败时重启
+  #   - Never: 从不重启
+  restartPolicy: Always
+
+  # 优雅终止期限 - 发送SIGTERM后的等待时间
+  # 到达后发送SIGKILL
+  terminationGracePeriodSeconds: 30
+
+  # DNS策略
+  # 可选值:
+  #   - ClusterFirst: 使用集群DNS (默认)
+  #   - Default: 使用节点DNS
+  #   - ClusterFirstWithHostNet: 使用集群DNS但使用宿主机网络
+  #   - None: 允许自定义DNS配置
+  dnsPolicy: ClusterFirst
+
+  # 是否使用宿主机网络
+  # 可选值: true, false
+  # true时Pod不使用网络命名空间
+  hostNetwork: false
+
+  # 卷定义 - 供volumeMounts引用
+  volumes:
+    # 卷1: ConfigMap卷
+    - # 卷名称
+      name: nginx-config
+
+      # ConfigMap卷类型
+      configMap:
+        # ConfigMap名称 - 必须已存在
+        name: nginx-config
+
+    # 卷2: 空目录卷 - 临时存储
+    - name: nginx-logs
+
+      # 空目录类型 - 临时存储
+      emptyDir: {}

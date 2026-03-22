@@ -1,0 +1,35 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: PersistentVolumeClaim
+
+# 元数据
+metadata:
+  name: app-pvc
+  namespace: default
+  labels:
+    app: app
+    environment: production
+  annotations:
+    description: "Application persistent volume claim with dynamic provisioning"
+
+# 规格说明
+spec:
+  # 访问模式
+  accessModes:
+    - ReadWriteOnce
+
+  # 资源请求
+  resources:
+    requests:
+      storage: 10Gi
+
+  # 存储类名 - 动态供应需要指定存储类
+  # StorageClass会根据配置自动创建PV
+  # 可选值: fast-ssd (SSD存储), standard (标准存储)
+  storageClassName: fast-ssd
+
+  # 卷模式
+  volumeMode: Filesystem

@@ -1,0 +1,84 @@
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
+apiVersion: v1
+
+# 资源类型 - 服务
+# 用于将Pod暴露为网络服务
+kind: Service
+
+# 元数据
+metadata:
+  # Service名称 - 在namespace内必须唯一
+  name: nginx-service
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: nginx
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Nginx web server service"
+
+# 规格说明
+spec:
+  # Service类型 - 定义服务暴露方式
+  # 可选值:
+  #   - ClusterIP: 集群内部访问 (默认)
+  #   - NodePort: 通过节点端口访问
+  #   - LoadBalancer: 通过云厂商负载均衡器
+  #   - ExternalName: 映射到外部域名
+  type: ClusterIP
+
+  # 集群IP - Service的虚拟IP地址
+  # 如果不指定，系统会自动分配
+  # 可选值: 有效的IPv4地址, 或留空自动分配
+  clusterIP: 10.96.0.100
+
+  # 选择器 - 指定哪些Pod归此Service管理
+  # Service会根据selector负载均衡到匹配的Pod
+  selector:
+    # 标签键值对
+    app: nginx
+
+  # 端口定义列表
+  ports:
+    # 端口1: HTTP
+    - # 端口名称 - 用于标识端口
+      name: http
+
+      # Service端口 - ClusterIP监听的端口
+      # 客户端访问此端口
+      port: 80
+
+      # 目标端口 - 转发到的容器端口
+      # 可选值: 端口号(1-65535) 或 端口名称
+      targetPort: 80
+
+      # 协议
+      # 可选值: TCP, UDP, SCTP
+      protocol: TCP
+
+    # 端口2: HTTPS
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+
+  # 会话亲和性 - 是否保持客户端会话
+  # 可选值:
+  #   - None: 无亲和性 (默认)
+  #   - ClientIP: 基于客户端IP的亲和性
+  sessionAffinity: None
+
+  # 会话亲和性配置
+  sessionAffinityConfig:
+    # ClientIP配置
+    clientIP:
+      # 超时时间 - 亲和性保持时长
+      # 可选值: 秒数 (通常设为10800=3小时)
+      timeoutSeconds: 10800

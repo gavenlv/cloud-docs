@@ -1,0 +1,36 @@
+
+# Kubernetes API 版本
+apiVersion: v1
+
+# 资源类型
+kind: Service
+
+# 元数据
+metadata:
+  # Service名称
+  name: external-database
+
+  # 所属namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: database
+    environment: production
+
+  # 注解
+  annotations:
+    description: "External database service"
+
+# 规格说明
+spec:
+  # Service类型
+  # ExternalName: 映射到外部域名 (CNAME记录)
+  type: ExternalName
+
+  # 外部域名 - 要映射到的目标域名
+  # 客户端访问此Service时会被解析到此域名
+  externalName: database.example.com
+
+  # 会话亲和性
+  sessionAffinity: None

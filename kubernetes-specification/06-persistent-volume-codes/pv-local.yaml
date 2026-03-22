@@ -1,0 +1,78 @@
+
+# Kubernetes API 版本 - 核心API组
+# 可选值: v1
+apiVersion: v1
+
+# 资源类型 - 持久化卷
+# 用于存储数据，与Pod生命周期独立
+kind: PersistentVolume
+
+# 元数据
+metadata:
+  # PV名称 - 必须唯一
+  name: local-pv
+
+  # 所属namespace - PV是集群级别资源，不属于namespace
+  namespace: default
+
+  # 标签
+  labels:
+    app: app
+    environment: production
+
+  # 注解
+  annotations:
+    description: "Local persistent volume"
+
+# 规格说明
+spec:
+  # 容量 - 存储大小
+  capacity:
+    # 存储容量
+    # 格式: Gi, Mi, Ki, Ti
+    storage: 10Gi
+
+  # 访问模式 - 定义卷的读写权限
+  # 可选值:
+  #   - ReadWriteOnce: 单节点读写 (常用)
+  #   - ReadOnlyMany: 多节点只读
+  #   - ReadWriteMany: 多节点读写 (需要NFS等支持)
+  accessModes:
+    - ReadWriteOnce
+
+  # 回收策略 - PVC删除后的行为
+  # 可选值:
+  #   - Retain: 保留数据 (默认)
+  #   - Delete: 删除卷
+  #   - Recycle: 清除数据后重用 (已废弃)
+  persistentVolumeReclaimPolicy: Retain
+
+  # 存储类名 - 用于动态 provisioning
+  # 可选值: local-storage, standard, nfs, aws-ebs, gce-pd
+  storageClassName: local-storage
+
+  # 本地存储配置
+  local:
+    # 存储路径 - 节点上的目录
+    path: /mnt/data
+
+  # 节点亲和性 - 限制PV所在的节点
+  nodeAffinity:
+    # 必须满足的条件
+    required:
+      # 节点选择器 terms
+      nodeSelectorTerms:
+        # 匹配表达式
+        - matchExpressions:
+            # 节点标签键
+            # 可选值: kubernetes.io/hostname, topology.kubernetes.io/zone等
+            - key: kubernetes.io/hostname
+
+              # 操作符
+              # 可选值: In, NotIn, Exists, DoesNotExist,Gt, Lt
+              operator: In
+
+              # 标签值列表
+              values:
+                # 节点名称
+                - node1
