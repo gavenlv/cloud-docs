@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  fe:
+    image: apache/doris:latest_fe
+    container_name: doris-fe
+    hostname: fe
+    environment:
+      - FE_SERVERS=fe1:127.0.0.1:9010
+    ports:
+      - "8030:8030"
+      - "9030:9030"
+    volumes:
+      - ./fe:/opt/apache-doris/fe
+    networks:
+      - doris
+
+  be:
+    image: apache/doris:latest_be
+    container_name: doris-be
+    hostname: be
+    environment:
+      - FE_HOSTS=127.0.0.1:9030
+      - BE_ADDR=127.0.0.1:9050
+    ports:
+      - "8040:8040"
+      - "9050:9050"
+      - "9060:9060"
+    volumes:
+      - ./be:/opt/apache-doris/be
+    depends_on:
+      - fe
+    networks:
+      - doris
+
+networks:
+  doris:
+    driver: bridge

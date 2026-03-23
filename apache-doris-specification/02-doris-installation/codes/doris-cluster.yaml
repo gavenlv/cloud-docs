@@ -1,0 +1,39 @@
+apiVersion: doris.apache.org/v1alpha1
+kind: DorisCluster
+metadata:
+  name: doris-cluster
+  namespace: doris
+spec:
+  feSpec:
+    replicas: 3
+    image: apache/doris:latest_fe
+    resources:
+      requests:
+        cpu: 2
+        memory: 4Gi
+      limits:
+        cpu: 4
+        memory: 8Gi
+    service:
+      type: ClusterIP
+    configMapInfo:
+      configMapName: doris-fe-config
+      resolveKey: fe.conf
+  beSpec:
+    replicas: 3
+    image: apache/doris:latest_be
+    resources:
+      requests:
+        cpu: 4
+        memory: 8Gi
+      limits:
+        cpu: 8
+        memory: 16Gi
+    service:
+      type: ClusterIP
+    configMapInfo:
+      configMapName: doris-be-config
+      resolveKey: be.conf
+    storage:
+      size: 100Gi
+      storageClassName: standard

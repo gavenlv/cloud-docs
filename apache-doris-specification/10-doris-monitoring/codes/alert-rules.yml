@@ -1,0 +1,106 @@
+groups:
+- name: doris_alerts
+  interval: 30s
+  rules:
+  # FE告警
+  - alert: DorisFEInstanceDown
+    expr: up{job="doris-fe"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Doris FE实例 {{ $labels.instance }} 宕机"
+      description: "Doris Frontend {{ $labels.instance }} 已经宕机超过1分钟"
+
+  - alert: DorisFEHighLatency
+    expr: doris_fe_query_latency_ms > 10000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris FE查询延迟过高"
+      description: "FE {{ $labels.instance }} 查询延迟超过10秒，当前值: {{ $value }}ms"
+
+  - alert: DorisFEHighSessionCount
+    expr: doris_fe_session_count > 5000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris FE会话数过高"
+      description: "FE {{ $labels.instance }} 会话数超过5000，当前值: {{ $value }}"
+
+  # BE告警
+  - alert: DorisBEInstanceDown
+    expr: up{job="doris-be"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Doris BE实例 {{ $labels.instance }} 宕机"
+      description: "Doris Backend {{ $labels.instance }} 已经宕机超过1分钟"
+
+  - alert: DorisBEHighCPU
+    expr: doris_be_cpu_used > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris BE CPU使用率过高"
+      description: "BE {{ $labels.instance }} CPU使用率超过80%，当前值: {{ $value }}%"
+
+  - alert: DorisBEHighMemory
+    expr: doris_be_mem_used > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris BE内存使用率过高"
+      description: "BE {{ $labels.instance }} 内存使用率超过85%，当前值: {{ $value }}%"
+
+  - alert: DorisBEHighDisk
+    expr: doris_be_disk_used > 90
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Doris BE磁盘即将满"
+      description: "BE {{ $labels.instance }} 磁盘使用率超过90%，当前值: {{ $value }}%"
+
+  - alert: DorisBETooManyTablets
+    expr: doris_be_tablet_count > 10000
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris BE Tablet数量过多"
+      description: "BE {{ $labels.instance }} Tablet数量超过10000，当前值: {{ $value }}"
+
+  - alert: DorisBEHighCompactionScore
+    expr: doris_be_cumulative_compaction_score > 100
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris BE压缩分数过高"
+      description: "BE {{ $labels.instance }} 累积压缩分数过高，可能需要手动触发压缩"
+
+  # 集群告警
+  - alert: DorisClusterUnbalanced
+    expr: |
+      (max(doris_be_disk_used) by (cluster) - min(doris_be_disk_used) by (cluster)) > 30
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Doris集群负载不均衡"
+      description: "集群 {{ $labels.cluster }} 的BE节点磁盘使用率差异超过30%"
+
+  - alert: DorisBackupFailed
+    expr: doris_backup_last_status == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Doris备份失败"
+      description: "Doris备份任务失败，请检查备份配置和存储空间"
