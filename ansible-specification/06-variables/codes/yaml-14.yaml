@@ -1,0 +1,43 @@
+# dict-vars.yml
+---
+- name: 字典变量示例
+  hosts: webservers
+  become: true
+  vars:
+    dict_var:
+      key1: value1
+      key2: value2
+      key3: value3
+    dict_var_multiline:
+      key1: value1
+      key2: value2
+      key3: value3
+    dict_var_flow: {key1: value1, key2: value2, key3: value3}
+  tasks:
+    - name: 显示字典变量
+      debug:
+        msg: "{{ dict_var }}"
+    
+    - name: 显示字典变量
+      debug:
+        msg: "{{ dict_var_multiline }}"
+    
+    - name: 显示字典变量
+      debug:
+        msg: "{{ dict_var_flow }}"
+    
+    - name: 访问字典元素
+      debug:
+        msg: "key1的值: {{ dict_var.key1 }}"
+    
+    - name: 访问字典元素
+      debug:
+        msg: "key2的值: {{ dict_var['key2'] }}"
+    
+    - name: 字典键列表
+      debug:
+        msg: "字典键: {{ dict_var.keys() | list }}"
+    
+    - name: 字典值列表
+      debug:
+        msg: "字典值: {{ dict_var.values() | list }}"

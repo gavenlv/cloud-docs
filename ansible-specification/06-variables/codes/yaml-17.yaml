@@ -1,0 +1,48 @@
+# list-filters.yml
+---
+- name: 列表过滤示例
+  hosts: webservers
+  become: true
+  vars:
+    list_var:
+      - item1
+      - item2
+      - item3
+      - item4
+      - item5
+  tasks:
+    - name: 列表长度
+      debug:
+        msg: "{{ list_var | length }}"
+    
+    - name: 列表第一个元素
+      debug:
+        msg: "{{ list_var | first }}"
+    
+    - name: 列表最后一个元素
+      debug:
+        msg: "{{ list_var | last }}"
+    
+    - name: 列表排序
+      debug:
+        msg: "{{ list_var | sort }}"
+    
+    - name: 列表去重
+      debug:
+        msg: "{{ ['item1', 'item2', 'item1'] | unique }}"
+    
+    - name: 列表切片
+      debug:
+        msg: "{{ list_var | list }}"
+    
+    - name: 列表求和
+      debug:
+        msg: "{{ [1, 2, 3, 4, 5] | sum }}"
+    
+    - name: 列表最大值
+      debug:
+        msg: "{{ [1, 2, 3, 4, 5] | max }}"
+    
+    - name: 列表最小值
+      debug:
+        msg: "{{ [1, 2, 3, 4, 5] | min }}"

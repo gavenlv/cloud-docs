@@ -1,0 +1,94 @@
+# task-module-params.yml
+---
+- name: Task模块参数示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建用户（使用模块参数）
+      user:
+        name: webuser
+        shell: /bin/bash
+        home: /home/webuser
+        groups:
+          - www-data
+        append: yes
+        state: present
+    
+    - name: 创建目录（使用模块参数）
+      file:
+        path: /var/www/html
+        state: directory
+        owner: webuser
+        group: www-data
+        mode: '0755'
+        recurse: yes
+    
+    - name: 复制文件（使用模块参数）
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: webuser
+        group: www-data
+        mode: '0644'
+        backup: yes
+    
+    - name: 创建模板文件（使用模块参数）
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+        backup: yes
+        validate: 'nginx -t -c %s'
+    
+    - name: 安装包（使用模块参数）
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+      loop:
+        - nginx
+        - nginx-extras
+    
+    - name: 启动服务（使用模块参数）
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+        pattern: nginx
+        sleep: 5
+        timeout: 60
+    
+    - name: 执行命令（使用模块参数）
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+    
+    - name: 执行Shell命令（使用模块参数）
+      shell: |
+        if [ -f /etc/nginx/nginx.conf ]; then
+          nginx -t
+        else
+          echo "Nginx配置文件不存在"
+          exit 1
+        fi
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+    
+    - name: 获取URL内容（使用模块参数）
+      uri:
+        url: http://localhost
+        method: GET
+        status_code: 200
+        timeout: 30
+        return_content: yes
+      register: web_content
+      changed_when: false
+    
+    - name: 显示Web内容
+      debug:
+        msg: "{{ web_content.content }}"

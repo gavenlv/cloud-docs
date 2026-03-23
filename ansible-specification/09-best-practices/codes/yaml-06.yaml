@@ -1,0 +1,48 @@
+# network-security.yml
+---
+- name: 网络安全示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 配置防火墙
+      ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+    
+    - name: 允许SSH连接
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+    
+    - name: 允许HTTP连接
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+    
+    - name: 允许HTTPS连接
+      ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+    
+    - name: 配置SSH安全
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+      notify:
+        - 重启SSH服务
+  
+  handlers:
+    - name: 重启SSH服务
+      service:
+        name: ssh
+        state: restarted

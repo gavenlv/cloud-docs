@@ -1,0 +1,55 @@
+cloud-native-platform:
+
+architecture:
+  control-plane:
+    - kubernetes
+    - argocd
+    - vault
+    - external-secrets
+    
+  observability:
+    - prometheus
+    - grafana
+    - loki
+    - tempo
+    - opentelemetry
+    
+  service-mesh:
+    - istio
+    - kiali
+    
+  security:
+    - kyverno
+    - trivy
+    - falco
+    
+  developer-platform:
+    - backstage
+    - crossplane
+    - kratos
+
+implementation:
+  phases:
+    - name: foundation
+      components:
+        - kubernetes-cluster
+        - gitops-setup
+        - secret-management
+        
+    - name: observability
+      components:
+        - metrics-stack
+        - logging-stack
+        - tracing-stack
+        
+    - name: security
+      components:
+        - policy-engine
+        - runtime-security
+        - image-scanning
+        
+    - name: developer-experience
+      components:
+        - developer-portal
+        - self-service-apis
+        - golden-paths

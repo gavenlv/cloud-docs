@@ -1,0 +1,28 @@
+# with_subelements循环示例
+
+- name: with_subelements循环示例
+  hosts: webservers
+  become: true
+  vars:
+    users:
+      - name: webuser
+        groups:
+          - www-data
+          - sudo
+      - name: dbuser
+        groups:
+          - mysql
+          - sudo
+      - name: appuser
+        groups:
+          - app
+          - sudo
+  tasks:
+    - name: 添加用户到多个组
+      user:
+        name: "{{ item.0.name }}"
+        groups: "{{ item.1 }}"
+        append: yes
+      with_subelements:
+        - "{{ users }}"
+        - groups

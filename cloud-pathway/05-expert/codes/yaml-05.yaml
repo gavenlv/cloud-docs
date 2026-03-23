@@ -1,0 +1,35 @@
+iac-security-pipeline:
+
+name: IaC Security Scan
+
+on:
+  push:
+    paths:
+    - '**.tf'
+    - '**.tfvars'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Checkov
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: ./terraform
+        framework: terraform
+        soft_fail: false
+        output_format: sarif
+        output_file_path: results.sarif
+        
+    - name: Run tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        soft_fail: false
+        
+    - name: Run Terrascan
+      uses: tenable/terrascan-action@main
+      with:
+        iac_type: terraform
+        iac_dir: ./terraform

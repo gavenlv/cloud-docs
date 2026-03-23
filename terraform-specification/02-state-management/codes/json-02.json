@@ -1,0 +1,11 @@
+{
+  "ID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "Operation": "OperationTypeApply",
+  "Info": {
+    "Path": "/path/to/terraform.tfstate",
+    "Who": "user@example.com",
+    "Version": "1.5.0",
+    "Created": "2024-01-15T10:30:00Z",
+    "Updated": "2024-01-15T10:30:00Z"
+  }
+}

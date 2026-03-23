@@ -1,0 +1,67 @@
+docker-compose.yml
+
+version: '3.8'
+
+services:
+  api-gateway:
+    image: kong:latest
+    ports:
+    - "8000:8000"
+    - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+
+  user-service:
+    build: ./user-service
+    ports:
+    - "8081:8080"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@user-db:5432/users
+      - REDIS_URL=redis://redis:6379
+
+  order-service:
+    build: ./order-service
+    ports:
+    - "8082:8080"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@order-db:5432/orders
+      - USER_SERVICE_URL=http://user-service:8080
+
+  product-service:
+    build: ./product-service
+    ports:
+    - "8083:8080"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@product-db:5432/products
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  user-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+
+  order-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+
+  product-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+
+  redis:
+    image: redis:7-alpine
+
+  elasticsearch:
+    image: elasticsearch:8.9.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false

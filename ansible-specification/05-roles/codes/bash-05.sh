@@ -1,0 +1,33 @@
+# 配置角色元数据
+
+# 创建元数据
+cat > roles/nginx/meta/main.yml << 'EOF'
+---
+galaxy_info:
+  role_name: nginx
+  author: Ansible User
+  description: Install and configure Nginx web server
+  company: Your Company
+  license: MIT
+  min_ansible_version: "2.9"
+  
+  platforms:
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+  
+  galaxy_tags:
+    - nginx
+    - web
+    - webserver
+    - http
+    - https
+
+dependencies: []
+EOF

@@ -1,0 +1,27 @@
+# string-vars.yml
+---
+- name: 字符串变量示例
+  hosts: webservers
+  become: true
+  vars:
+    string_var: "Hello, World!"
+    string_var_multiline: |
+      This is a
+      multiline
+      string
+    string_var_folded: >
+      This is a
+      folded
+      string
+  tasks:
+    - name: 显示字符串变量
+      debug:
+        msg: "{{ string_var }}"
+    
+    - name: 显示多行字符串变量
+      debug:
+        msg: "{{ string_var_multiline }}"
+    
+    - name: 显示折叠字符串变量
+      debug:
+        msg: "{{ string_var_folded }}"

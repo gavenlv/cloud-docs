@@ -1,0 +1,46 @@
+# roles/nginx/tests/test.yml
+---
+- name: 测试Nginx角色
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 检查Nginx是否安装
+      apt:
+        name: nginx
+        state: present
+      check_mode: yes
+      register: nginx_check
+    
+    - name: 验证Nginx安装
+      assert:
+        that:
+          - nginx_check is succeeded
+        fail_msg: "Nginx安装失败"
+        success_msg: "Nginx安装成功"
+    
+    - name: 检查Nginx服务
+      service:
+        name: nginx
+        state: started
+      register: nginx_service
+    
+    - name: 验证Nginx服务
+      assert:
+        that:
+          - nginx_service.status.ActiveState == "active"
+        fail_msg: "Nginx服务未运行"
+        success_msg: "Nginx服务运行正常"
+    
+    - name: 测试Nginx响应
+      uri:
+        url: http://localhost
+        method: GET
+        status_code: 200
+      register: nginx_response
+    
+    - name: 验证Nginx响应
+      assert:
+        that:
+          - nginx_response.status == 200
+        fail_msg: "Nginx响应失败"
+        success_msg: "Nginx响应正常"

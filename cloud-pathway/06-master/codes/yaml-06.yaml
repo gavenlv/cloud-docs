@@ -1,0 +1,47 @@
+learning-framework:
+
+learning-sources:
+  - category: 实践学习
+    activities:
+      - 项目实践
+      - 问题解决
+      - 代码审查
+      - 故障排查
+    weight: 50%
+    
+  - category: 社交学习
+    activities:
+      - 导师指导
+      - 团队协作
+      - 技术交流
+      - 社区参与
+    weight: 20%
+    
+  - category: 正式学习
+    activities:
+      - 培训课程
+      - 认证考试
+      - 会议培训
+      - 学位项目
+    weight: 15%
+    
+  - category: 自主学习
+    activities:
+      - 阅读书籍
+      - 在线课程
+      - 技术文章
+      - 开源贡献
+    weight: 15%
+
+learning-habits:
+  - name: daily-reading
+    description: 每日技术阅读30分钟
+    
+  - name: weekly-writing
+    description: 每周技术总结输出
+    
+  - name: monthly-project
+    description: 每月个人项目实践
+    
+  - name: quarterly-review
+    description: 季度成长回顾规划

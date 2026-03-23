@@ -1,0 +1,26 @@
+# dict-filters.yml
+---
+- name: 字典过滤示例
+  hosts: webservers
+  become: true
+  vars:
+    dict_var:
+      key1: value1
+      key2: value2
+      key3: value3
+  tasks:
+    - name: 字典键列表
+      debug:
+        msg: "{{ dict_var.keys() | list }}"
+    
+    - name: 字典值列表
+      debug:
+        msg: "{{ dict_var.values() | list }}"
+    
+    - name: 字典项列表
+      debug:
+        msg: "{{ dict_var.items() | list }}"
+    
+    - name: 字典合并
+      debug:
+        msg: "{{ dict_var | combine({'key4': 'value4'}) }}"

@@ -1,0 +1,30 @@
+# required-params.yml
+---
+- name: 必需参数示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建文件（必需参数）
+      file:
+        path: /var/www/html/index.html
+        state: touch
+    
+    - name: 复制文件（必需参数）
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+    
+    - name: 安装包（必需参数）
+      apt:
+        name: nginx
+        state: present
+    
+    - name: 启动服务（必需参数）
+      service:
+        name: nginx
+        state: started
+    
+    - name: 创建用户（必需参数）
+      user:
+        name: webuser
+        state: present

@@ -1,0 +1,30 @@
+# boolean-vars.yml
+---
+- name: 布尔变量示例
+  hosts: webservers
+  become: true
+  vars:
+    true_var: true
+    false_var: false
+    yes_var: yes
+    no_var: no
+  tasks:
+    - name: 显示布尔变量
+      debug:
+        msg: "true_var: {{ true_var }}"
+    
+    - name: 显示布尔变量
+      debug:
+        msg: "false_var: {{ false_var }}"
+    
+    - name: 显示布尔变量
+      debug:
+        msg: "yes_var: {{ yes_var }}"
+    
+    - name: 显示布尔变量
+      debug:
+        msg: "no_var: {{ no_var }}"
+    
+    - name: 布尔运算
+      debug:
+        msg: "运算结果: {{ true_var and false_var }}"

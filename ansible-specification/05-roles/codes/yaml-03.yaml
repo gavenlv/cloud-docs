@@ -1,0 +1,19 @@
+# roles/nginx/tasks/main.yml
+---
+- name: 包含安装任务
+  include_tasks: install.yml
+  tags:
+    - nginx
+    - install
+
+- name: 包含配置任务
+  include_tasks: configure.yml
+  tags:
+    - nginx
+    - configure
+
+- name: 包含服务任务
+  include_tasks: service.yml
+  tags:
+    - nginx
+    - service

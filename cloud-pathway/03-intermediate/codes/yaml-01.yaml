@@ -1,0 +1,32 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: my-service-config
+proxy:
+  path: /api/v1
+route:
+  methods:
+  - GET
+  - POST
+  strip_path: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-api
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/override: my-service-config
+    konghq.com/plugins: rate-limiting,jwt-auth
+spec:
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /users
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service
+            port:
+              number: 80

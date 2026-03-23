@@ -1,0 +1,35 @@
+# with_items循环示例
+
+- name: with_items循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装多个包
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+    
+    - name: 创建多个目录
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - /var/www/html
+        - /var/log/nginx
+        - /etc/nginx/conf.d
+    
+    - name: 配置防火墙规则
+      ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      with_items:
+        - { port: 80, proto: tcp }
+        - { port: 443, proto: tcp }
+        - { port: 22, proto: tcp }

@@ -1,0 +1,32 @@
+# playbook-basic.yml
+---
+- name: 基本Play示例
+  hosts: webservers
+  become: true
+  vars:
+    http_port: 80
+    document_root: /var/www/html
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+    
+    - name: 启动Nginx服务
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+    
+    - name: 创建文档根目录
+      file:
+        path: "{{ document_root }}"
+        state: directory
+        mode: '0755'
+    
+    - name: 创建首页文件
+      copy:
+        content: "Hello, World!"
+        dest: "{{ document_root }}/index.html"
+        mode: '0644'

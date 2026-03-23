@@ -1,0 +1,55 @@
+# Ingress配置详解
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  annotations:
+    # ============================================================
+    # annotations - 扩展配置
+    # ============================================================
+    # 为什么需要:
+    # └── Ingress Controller特定配置
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  # ============================================================
+  # ingressClassName - Ingress类
+  # ============================================================
+  # 为什么需要:
+  # └── 指定使用哪个Ingress Controller
+  ingressClassName: nginx
+
+  # ============================================================
+  # tls - HTTPS配置
+  # ============================================================
+  # 为什么需要:
+  # └── 启用HTTPS
+  tls:
+  - hosts:
+    - api.example.com
+    secretName: api-tls  # Secret资源名
+
+  # ============================================================
+  # rules - 路由规则
+  # ============================================================
+  # 为什么需要:
+  # └── 定义如何路由请求
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /v1
+        pathType: Prefix      # Prefix/Exact/ImplementationSpecific
+        backend:
+          service:
+            name: api-v1
+            port:
+              number: 80
+      - path: /v2
+        pathType: Prefix
+        backend:
+          service:
+            name: api-v2
+            port:
+              number: 80

@@ -1,0 +1,11 @@
+# playbook-with-dependencies.yml
+---
+- name: 使用角色依赖的Playbook
+  hosts: webservers
+  become: true
+  roles:
+    - role: app
+      vars:
+        app_name: myapp
+        app_version: 1.0.0
+        app_port: 8080

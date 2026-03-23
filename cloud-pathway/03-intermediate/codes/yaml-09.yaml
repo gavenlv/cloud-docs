@@ -1,0 +1,66 @@
+# ConfigMap - 多种创建方式
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  # ============================================================
+  # 方式1: 键值对
+  # ============================================================
+  # 为什么使用:
+  # └── 简单的配置项
+  database_host: "mysql.default.svc.cluster.local"
+  database_port: "3306"
+  cache_host: "redis.default.svc.cluster.local"
+  
+  # ============================================================
+  # 方式2: 配置文件
+  # ============================================================
+  # 为什么使用:
+  # └── 完整的配置文件
+  config.yaml: |
+    server:
+      port: 8080
+      host: 0.0.0.0
+    database:
+      host: mysql
+      port: 3306
+      pool_size: 10
+    logging:
+      level: info
+      format: json
+
+# 使用方式1: 环境变量
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+  - name: app
+    image: my-app:1.0
+    env:
+    # 方式A: 单个环境变量
+    - name: DB_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: database_host
+    # 方式B: 所有键作为环境变量
+    envFrom:
+    - configMapRef:
+        name: app-config
+
+# 使用方式2: 卷挂载
+    volumeMounts:
+    - name: config
+      mountPath: /etc/config
+      readOnly: true
+  volumes:
+  - name: config
+    configMap:
+      name: app-config
+      # 可选: 只挂载特定键
+      items:
+      - key: config.yaml
+        path: app.yaml

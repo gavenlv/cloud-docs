@@ -1,0 +1,26 @@
+# with_sequence循环示例
+
+- name: with_sequence循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建多个目录（数字序列）
+      file:
+        path: "/var/www/html/site{{ item }}"
+        state: directory
+        mode: '0755'
+      with_sequence: start=1 end=5
+    
+    - name: 创建多个目录（数字序列，步长为2）
+      file:
+        path: "/var/www/html/site{{ item }}"
+        state: directory
+        mode: '0755'
+      with_sequence: start=1 end=10 stride=2
+    
+    - name: 创建多个目录（数字序列，格式化）
+      file:
+        path: "/var/www/html/site{{ item | format('%03d') }}"
+        state: directory
+        mode: '0755'
+      with_sequence: start=1 end=5 format="%03d"

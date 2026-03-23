@@ -1,0 +1,35 @@
+# number-filters.yml
+---
+- name: 数字过滤示例
+  hosts: webservers
+  become: true
+  vars:
+    number_var: 3.14159
+  tasks:
+    - name: 四舍五入
+      debug:
+        msg: "{{ number_var | round }}"
+    
+    - name: 向上取整
+      debug:
+        msg: "{{ number_var | ceil }}"
+    
+    - name: 向下取整
+      debug:
+        msg: "{{ number_var | floor }}"
+    
+    - name: 绝对值
+      debug:
+        msg: "{{ -10 | abs }}"
+    
+    - name: 随机数
+      debug:
+        msg: "{{ 100 | random }}"
+    
+    - name: 幂运算
+      debug:
+        msg: "{{ 2 | pow(10) }}"
+    
+    - name: 对数运算
+      debug:
+        msg: "{{ 1024 | log2 }}"

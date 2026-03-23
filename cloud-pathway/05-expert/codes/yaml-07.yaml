@@ -1,0 +1,32 @@
+compliance-pipeline:
+
+name: Compliance Check
+
+on:
+  push:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Prowler (AWS Security)
+      run: |
+        pip install prowler
+        prowler aws --severity critical high
+        
+    - name: Run ScoutSuite
+      run: |
+        pip install scoutsuite
+        scout aws
+        
+    - name: Run Open Policy Agent
+      run: |
+        opa test ./policies -v
+        
+    - name: Generate Compliance Report
+      run: |
+        python scripts/generate_compliance_report.py

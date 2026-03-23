@@ -1,0 +1,25 @@
+# with_list循环示例
+
+- name: with_list循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装多个包
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_list:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+    
+    - name: 创建多个目录
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_list:
+        - /var/www/html
+        - /var/log/nginx
+        - /etc/nginx/conf.d

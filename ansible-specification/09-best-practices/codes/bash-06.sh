@@ -1,0 +1,1 @@
+ansible-playbook playbooks/site.yml --syntax-check

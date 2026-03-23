@@ -1,0 +1,29 @@
+# module-execution-optimization.yml
+---
+- name: 模块执行优化示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 使用pipelining
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      vars:
+        ansible_ssh_pipelining: true
+    
+    - name: 使用SSH multiplexing
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      vars:
+        ansible_ssh_common_args: '-o ControlMaster=auto -o ControlPersist=60s'
+    
+    - name: 使用SSH压缩
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      vars:
+        ansible_ssh_common_args: '-o Compression=yes'

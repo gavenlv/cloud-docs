@@ -1,0 +1,274 @@
+# ============================================================
+# Kubernetes资源详解
+# ============================================================
+
+# ========== 1. Deployment - 应用部署 ==========
+
+# Deployment = 声明式管理Pod
+# 告诉K8s：我需要运行3个nginx容器，如果挂了请重启
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app: my-app
+    version: v1
+spec:
+  # 副本数
+  replicas: 3
+  
+  # 选择器
+  selector:
+    matchLabels:
+      app: my-app
+  
+  # Pod模板
+  template:
+    metadata:
+      labels:
+        app: my-app
+        version: v1
+    spec:
+      containers:
+      - name: my-app
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        
+        # 资源限制（重要：生产环境必须设置）
+        resources:
+          requests:
+            cpu: 100m        # 100毫核 = 0.1核
+            memory: 128Mi   # 128兆字节
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        
+        # 健康检查 - 存活探针
+        # 检查容器是否活着，失败会重启
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # 健康检查 - 就绪探针
+        # 检查容器是否准备好接收流量
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # 环境变量
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: LOG_LEVEL
+          value: info
+        
+        # 配置挂载
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+        - name: secret
+          mountPath: /etc/secret
+          readOnly: true
+      
+      # 存储卷
+      volumes:
+      - name: config
+        configMap:
+          name: my-app-config
+      - name: secret
+        secret:
+          secretName: my-app-secret
+
+---
+
+# ========== 2. Service - 服务发现和负载均衡 ==========
+
+# Service = 稳定的网络入口
+# 无论Pod在哪里、是否重启，访问地址不变
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+  labels:
+    app: my-app
+spec:
+  # Service类型
+  # - ClusterIP: 仅集群内部访问（默认）
+  # - NodePort: 每个节点开放一个端口
+  # - LoadBalancer: 使用云负载均衡器
+  # - ExternalName: DNS别名
+  type: LoadBalancer
+  
+  selector:
+    app: my-app
+  
+  ports:
+  - name: http
+    port: 80        # Service端口
+    targetPort: 80  # Pod端口
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP
+  
+  # 会话亲和性
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+---
+
+# ========== 3. Ingress - HTTP/HTTPS路由 ==========
+
+# Ingress = HTTP路由
+# 基于路径或域名路由到不同的Service
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - api.example.com
+    secretName: api-tls-secret
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /v1
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-service
+            port:
+              number: 80
+
+---
+
+# ========== 4. ConfigMap - 配置管理 ==========
+
+# ConfigMap = 非敏感配置
+# 数据库连接地址、API端点、功能开关等
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-app-config
+data:
+  DATABASE_HOST: "10.0.0.1"
+  DATABASE_PORT: "5432"
+  API_ENDPOINT: "https://api.example.com"
+  LOG_LEVEL: "info"
+  FEATURE_NEW_UI: "true"
+
+---
+
+# ========== 5. Secret - 敏感配置 ==========
+
+# Secret = 敏感数据
+# 密码、API密钥、证书等
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-app-secret
+type: Opaque
+stringData:
+  # Base64编码的值（自动转换）
+  database-password: cGFzc3dvcmQxMjM=
+  api-key: c2VjcmV0LWtleS0xMjM=
+  # 或者直接写（不编码）
+  # mysql-root-password: "password123"
+
+---
+
+# ========== 6. HorizontalPodAutoscaler - 自动扩缩 ==========
+
+# HPA = 基于指标的自动扩缩
+# 根据CPU/内存使用率自动调整副本数
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+
+# ========== 7. PersistentVolumeClaim - 持久化存储 ==========
+
+# PVC = 持久化存储请求
+# 数据不会因Pod重启而丢失
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-app-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard-rwo
+
+# 使用PVC
+# 在Deployment中添加：
+# volumeMounts:
+# - name: data
+#   mountPath: /var/data
+# volumes:
+# - name: data
+#   persistentVolumeClaim:
+#     claimName: my-app-pvc
+
+### 3.3.1 Kubernetes调度器深度原理
+
+**调度器是怎么决定把Pod放到哪个节点的？**

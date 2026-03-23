@@ -1,0 +1,71 @@
+# user-group-modules.yml
+---
+- name: 用户和组模块示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建用户
+      user:
+        name: webuser
+        shell: /bin/bash
+        home: /home/webuser
+        groups:
+          - www-data
+          - sudo
+        append: yes
+        state: present
+    
+    - name: 创建用户（带密码）
+      user:
+        name: webuser
+        password: "{{ 'password' | password_hash('sha512') }}"
+        shell: /bin/bash
+        home: /home/webuser
+        state: present
+    
+    - name: 创建系统用户
+      user:
+        name: nginx
+        system: yes
+        shell: /usr/sbin/nologin
+        home: /var/lib/nginx
+        create_home: no
+        state: present
+    
+    - name: 删除用户
+      user:
+        name: olduser
+        state: absent
+        remove: yes
+    
+    - name: 创建组
+      group:
+        name: webgroup
+        state: present
+    
+    - name: 创建系统组
+      group:
+        name: www-data
+        system: yes
+        state: present
+    
+    - name: 添加SSH密钥到用户
+      authorized_key:
+        user: webuser
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5/..."
+        state: present
+    
+    - name: 添加多个SSH密钥到用户
+      authorized_key:
+        user: webuser
+        key: "{{ item }}"
+        state: present
+      loop:
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5/..."
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6/..."
+    
+    - name: 修改用户密码
+      user:
+        name: webuser
+        password: "{{ 'newpassword' | password_hash('sha512') }}"
+        state: present

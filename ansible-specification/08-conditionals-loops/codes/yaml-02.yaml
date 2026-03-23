@@ -1,0 +1,45 @@
+# 复杂条件示例
+
+- name: 复杂条件示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装Nginx（Debian系统且版本>=20.04）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when:
+        - ansible_os_family == "Debian"
+        - ansible_distribution_version is version('20.04', '>=')
+    
+    - name: 配置Nginx（SSL启用且证书存在）
+      template:
+        src: nginx-ssl.conf.j2
+        dest: /etc/nginx/nginx.conf
+      when:
+        - nginx_ssl_enabled | default(false)
+        - nginx_ssl_cert_stat.stat.exists | default(false)
+        - nginx_ssl_key_stat.stat.exists | default(false)
+    
+    - name: 安装PHP（Web服务器且PHP启用）
+      apt:
+        name: php-fpm
+        state: present
+        update_cache: yes
+      when:
+        - inventory_hostname in groups['webservers']
+        - php_enabled | default(false)
+    
+    - name: 配置防火墙（HTTP或HTTPS端口）
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "{{ http_port }}"
+        - "{{ https_port }}"
+      when:
+        - firewall_enabled | default(false)
+        - item is defined
+        - item is number

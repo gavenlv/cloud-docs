@@ -1,0 +1,40 @@
+# with_dict循环示例
+
+- name: with_dict循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建多个用户
+      user:
+        name: "{{ item.key }}"
+        shell: /bin/bash
+        home: "{{ item.value.home }}"
+        groups: "{{ item.value.groups }}"
+        append: yes
+        state: present
+      with_dict:
+        webuser:
+          home: /home/webuser
+          groups:
+            - www-data
+            - sudo
+        dbuser:
+          home: /home/dbuser
+          groups:
+            - mysql
+            - sudo
+        appuser:
+          home: /home/appuser
+          groups:
+            - app
+            - sudo
+    
+    - name: 创建多个目录
+      file:
+        path: "{{ item.value }}"
+        state: directory
+        mode: '0755'
+      with_dict:
+        html: /var/www/html
+        log: /var/log/nginx
+        config: /etc/nginx/conf.d

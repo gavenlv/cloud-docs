@@ -1,0 +1,38 @@
+# loop_register示例
+
+- name: loop_register示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 检查多个文件
+      stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/nginx/nginx.conf
+        - /etc/nginx/sites-available/default
+        - /var/www/html/index.html
+      register: file_stats
+    
+    - name: 显示文件状态
+      debug:
+        msg: "文件 {{ item.item }} 存在: {{ item.stat.exists }}"
+      loop: "{{ file_stats.results }}"
+      when: item.stat is defined
+    
+    - name: 安装多个包
+      apt:
+        name: "{{ package }}"
+        state: present
+        update_cache: yes
+      loop:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+      loop_control:
+        loop_var: package
+      register: package_install
+    
+    - name: 显示安装结果
+      debug:
+        msg: "包 {{ item.item }} 安装状态: {{ item.changed }}"
+      loop: "{{ package_install.results }}"

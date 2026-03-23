@@ -1,0 +1,43 @@
+# loop_control示例
+
+- name: loop_control示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装多个包（自定义循环变量）
+      apt:
+        name: "{{ package }}"
+        state: present
+        update_cache: yes
+      loop:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+      loop_control:
+        loop_var: package
+    
+    - name: 创建多个目录（自定义循环变量和标签）
+      file:
+        path: "{{ directory }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /var/www/html
+        - /var/log/nginx
+        - /etc/nginx/conf.d
+      loop_control:
+        loop_var: directory
+        label: "创建目录 {{ directory }}"
+    
+    - name: 安装多个包（暂停）
+      apt:
+        name: "{{ package }}"
+        state: present
+        update_cache: yes
+      loop:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+      loop_control:
+        loop_var: package
+        pause: 5

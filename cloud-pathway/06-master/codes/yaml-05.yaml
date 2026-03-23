@@ -1,0 +1,48 @@
+influence-practices:
+
+technical-influence:
+  - activity: open-source-contribution
+    actions:
+      - 贡献开源项目
+      - 发起开源项目
+      - 参与社区讨论
+    metrics:
+      - github-stars
+      - contributions-count
+      
+  - activity: technical-writing
+    actions:
+      - 技术博客
+      - 技术文档
+      - 最佳实践分享
+    metrics:
+      - article-views
+      - citations
+      
+  - activity: speaking
+    actions:
+      - 技术会议演讲
+      - 内部分享
+      - 培训授课
+    metrics:
+      - audience-size
+      - feedback-score
+
+organizational-influence:
+  - activity: strategic-initiatives
+    actions:
+      - 主导技术战略
+      - 推动组织变革
+      - 建设技术文化
+    metrics:
+      - initiative-success-rate
+      - adoption-rate
+      
+  - activity: cross-team-collaboration
+    actions:
+      - 跨团队项目
+      - 技术委员会
+      - 标准制定
+    metrics:
+      - collaboration-projects
+      - standard-adoption

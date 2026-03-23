@@ -1,0 +1,20 @@
+# roles/nginx/tasks/service.yml
+---
+- name: 启动Nginx服务
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  become: true
+  tags:
+    - nginx
+    - service
+
+- name: 等待Nginx服务启动
+  wait_for:
+    port: "{{ nginx_port }}"
+    delay: 5
+    timeout: 30
+  tags:
+    - nginx
+    - service

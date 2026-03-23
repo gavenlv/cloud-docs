@@ -1,0 +1,107 @@
+# task-attributes.yml
+---
+- name: Task属性示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装Nginx（带条件）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 安装Nginx（带循环）
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - nginx
+        - nginx-extras
+        - nginx-common
+    
+    - name: 安装Nginx（带忽略错误）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      ignore_errors: yes
+    
+    - name: 安装Nginx（带注册变量）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      register: nginx_install
+    
+    - name: 显示安装结果
+      debug:
+        msg: "Nginx安装结果: {{ nginx_install }}"
+    
+    - name: 安装Nginx（带变更条件）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      changed_when: nginx_install.changed
+    
+    - name: 安装Nginx（带失败条件）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      failed_when: nginx_install.rc != 0
+    
+    - name: 安装Nginx（带重试）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      retries: 3
+      delay: 5
+      until: nginx_install is succeeded
+    
+    - name: 安装Nginx（带超时）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      async: 300
+      poll: 10
+    
+    - name: 安装Nginx（带标签）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      tags:
+        - nginx
+        - web
+        - install
+    
+    - name: 安装Nginx（带通知）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      notify:
+        - 重启Nginx服务
+        - 重新加载Nginx配置
+    
+    - name: 安装Nginx（带本地操作）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      delegate_to: localhost
+      run_once: true
+    
+    - name: 安装Nginx（带become）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      become: true
+      become_method: sudo
+      become_user: root

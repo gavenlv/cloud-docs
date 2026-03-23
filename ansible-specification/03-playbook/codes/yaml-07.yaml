@@ -1,0 +1,46 @@
+# handler-basic.yml
+---
+- name: Handler基本用法示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      notify:
+        - 重启Nginx服务
+    
+    - name: 配置Nginx
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - 重启Nginx服务
+    
+    - name: 创建文档根目录
+      file:
+        path: /var/www/html
+        state: directory
+        mode: '0755'
+      notify:
+        - 重新加载Nginx配置
+    
+    - name: 创建首页文件
+      copy:
+        content: "Hello, World!"
+        dest: /var/www/html/index.html
+        mode: '0644'
+      notify:
+        - 重新加载Nginx配置
+  handlers:
+    - name: 重启Nginx服务
+      service:
+        name: nginx
+        state: restarted
+    
+    - name: 重新加载Nginx配置
+      service:
+        name: nginx
+        state: reloaded

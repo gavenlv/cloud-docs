@@ -1,0 +1,16 @@
+# play-vars.yml
+---
+- name: Play变量示例
+  hosts: webservers
+  become: true
+  vars:
+    play_http_port: 80
+    play_https_port: 443
+  tasks:
+    - name: 显示Play变量
+      debug:
+        msg: "Play HTTP端口: {{ play_http_port }}"
+    
+    - name: 在Task中使用Play变量
+      debug:
+        msg: "Play HTTPS端口: {{ play_https_port }}"

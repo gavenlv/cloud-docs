@@ -1,0 +1,21 @@
+budget-alerts:
+  - name: monthly-budget
+    amount: 10000
+    unit: USD
+    alerts:
+      - threshold: 50
+        notification: email
+        recipients: [finance@example.com]
+      - threshold: 80
+        notification: email
+        recipients: [finance@example.com, ops@example.com]
+      - threshold: 100
+        notification: sns
+        topic: budget-alerts
+        
+  - name: service-budget
+    service: EC2
+    amount: 4000
+    alerts:
+      - threshold: 90
+        notification: email

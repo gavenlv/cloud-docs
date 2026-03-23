@@ -1,0 +1,19 @@
+# host_vars/web1.example.com
+---
+http_port: 8080
+https_port: 8443
+document_root: /var/www/web1
+server_name: web1.example.com
+ssl_enabled: true
+ssl_cert_path: /etc/ssl/certs/web1.example.com.crt
+ssl_key_path: /etc/ssl/private/web1.example.com.key
+
+nginx_config:
+  worker_processes: 4
+  worker_connections: 1024
+  keepalive_timeout: 65
+
+nginx_packages:
+  - nginx
+  - nginx-extras
+  - python3-certbot-nginx

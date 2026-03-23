@@ -1,0 +1,21 @@
+dependency-scan:
+  tools:
+    - name: Snyk
+      config:
+        severity-threshold: high
+        fail-on: true
+        
+    - name: Dependabot
+      config:
+        update-schedule: daily
+        open-pull-requests-limit: 10
+        
+    - name: OWASP Dependency-Check
+      config:
+        suppression-file: dependency-check-suppressions.xml
+        fail-on-cvss: 7
+        
+  scan-config:
+    scan-node-modules: true
+    scan-python-packages: true
+    scan-java-dependencies: true

@@ -1,0 +1,20 @@
+# sensitive-data-encryption.yml
+---
+- name: 敏感数据加密示例
+  hosts: webservers
+  become: true
+  vars_files:
+    - vault/encrypted.yml
+  tasks:
+    - name: 使用加密变量
+      debug:
+        msg: "数据库密码: {{ mysql_root_password }}"
+      no_log: true
+    
+    - name: 创建数据库用户
+      mysql_user:
+        name: appuser
+        password: "{{ mysql_app_password }}"
+        priv: "appdb.*:ALL"
+        state: present
+      no_log: true

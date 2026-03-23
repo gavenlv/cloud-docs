@@ -1,0 +1,27 @@
+# with_flattened循环示例
+
+- name: with_flattened循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装多个包（嵌套列表）
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_flattened:
+        - - nginx
+          - nginx-extras
+        - - python3-certbot-nginx
+          - python3-certbot
+    
+    - name: 创建多个目录（嵌套列表）
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_flattened:
+        - - /var/www/html
+          - /var/www/static
+        - - /var/log/nginx
+          - /var/log/nginx/old

@@ -1,0 +1,27 @@
+# playbook-testing.yml
+---
+- name: Playbook测试示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 检查模式
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      check_mode: yes
+      register: nginx_check
+    
+    - name: 显示检查结果
+      debug:
+        msg: "Nginx安装检查: {{ nginx_check }}"
+    
+    - name: 验证配置
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+    
+    - name: 显示验证结果
+      debug:
+        msg: "Nginx配置验证: {{ nginx_test.stdout }}"

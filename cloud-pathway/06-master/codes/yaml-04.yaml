@@ -1,0 +1,50 @@
+knowledge-management:
+
+documentation:
+  - type: architecture
+    location: confluence/architecture
+    templates:
+      - adr-template
+      - design-doc-template
+      
+  - type: runbook
+    location: gitops/runbooks
+    templates:
+      - incident-response
+      - operational-procedure
+      
+  - type: api
+    location: api-docs
+    tools:
+      - openapi
+      - graphql-schema
+
+knowledge-sharing:
+  - name: tech-talk
+    frequency: weekly
+    format: 30min presentation + Q&A
+    
+  - name: architecture-review
+    frequency: bi-weekly
+    format: design review session
+    
+  - name: code-review-workshop
+    frequency: monthly
+    format: hands-on practice
+    
+  - name: book-club
+    frequency: monthly
+    format: chapter discussion
+
+communities:
+  - name: cloud-native
+    topics: [kubernetes, service-mesh, observability]
+    meetings: bi-weekly
+    
+  - name: security
+    topics: [devsecops, compliance, vulnerability]
+    meetings: monthly
+    
+  - name: data-engineering
+    topics: [data-pipeline, ml-ops, analytics]
+    meetings: bi-weekly

@@ -1,0 +1,36 @@
+# playbook-vars.yml
+---
+- name: Playbook中定义变量示例
+  hosts: webservers
+  become: true
+  vars:
+    http_port: 80
+    https_port: 443
+    document_root: /var/www/html
+    server_name: localhost
+    nginx_config:
+      worker_processes: auto
+      worker_connections: 1024
+      keepalive_timeout: 65
+    nginx_packages:
+      - nginx
+      - nginx-extras
+      - python3-certbot-nginx
+    ssl_enabled: false
+    ssl_cert_path: /etc/ssl/certs/nginx.crt
+    ssl_key_path: /etc/ssl/private/nginx.key
+  tasks:
+    - name: 显示变量
+      debug:
+        msg:
+          - "HTTP端口: {{ http_port }}"
+          - "HTTPS端口: {{ https_port }}"
+          - "文档根目录: {{ document_root }}"
+          - "服务器名称: {{ server_name }}"
+          - "工作进程数: {{ nginx_config.worker_processes }}"
+          - "工作连接数: {{ nginx_config.worker_connections }}"
+          - "保持连接超时: {{ nginx_config.keepalive_timeout }}"
+          - "Nginx包: {{ nginx_packages }}"
+          - "SSL启用: {{ ssl_enabled }}"
+          - "SSL证书路径: {{ ssl_cert_path }}"
+          - "SSL密钥路径: {{ ssl_key_path }}"

@@ -1,0 +1,35 @@
+# with_together循环示例
+
+- name: with_together循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建多个文件（组合列表）
+      copy:
+        content: "{{ item.1 }}"
+        dest: "{{ item.0 }}"
+        mode: '0644'
+      with_together:
+        - - /var/www/html/index.html
+          - /var/www/html/about.html
+          - /var/www/html/contact.html
+        - - "Index Page"
+          - "About Page"
+          - "Contact Page"
+    
+    - name: 创建多个用户（组合列表）
+      user:
+        name: "{{ item.0 }}"
+        shell: "{{ item.1 }}"
+        home: "{{ item.2 }}"
+        state: present
+      with_together:
+        - - webuser
+          - dbuser
+          - appuser
+        - - /bin/bash
+          - /bin/bash
+          - /bin/bash
+        - - /home/webuser
+          - /home/dbuser
+          - /home/appuser

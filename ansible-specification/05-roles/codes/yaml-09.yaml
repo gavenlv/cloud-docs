@@ -1,0 +1,27 @@
+# roles/app/meta/main.yml
+---
+galaxy_info:
+  role_name: app
+  author: Ansible User
+  description: Install and configure application
+  company: Your Company
+  license: MIT
+  min_ansible_version: "2.9"
+
+dependencies:
+  - role: nginx
+    vars:
+      nginx_port: 80
+      nginx_document_root: /var/www/app
+  
+  - role: mysql
+    vars:
+      mysql_root_password: secret
+      mysql_database: appdb
+      mysql_user: appuser
+      mysql_password: apppass
+  
+  - role: redis
+    vars:
+      redis_port: 6379
+      redis_bind: 127.0.0.1

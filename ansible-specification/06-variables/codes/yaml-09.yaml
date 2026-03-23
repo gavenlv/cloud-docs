@@ -1,0 +1,13 @@
+# group-vars.yml
+---
+- name: 组变量示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 显示组变量
+      debug:
+        msg: "组HTTP端口: {{ http_port }}"
+    
+    - name: 显示组变量
+      debug:
+        msg: "组HTTPS端口: {{ https_port }}"

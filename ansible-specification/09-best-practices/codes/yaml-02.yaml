@@ -1,0 +1,24 @@
+# parallel-execution.yml
+---
+- name: 并发执行优化示例
+  hosts: webservers
+  become: true
+  serial:
+    - "30%"
+    - "50%"
+    - "100%"
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+    
+    - name: 配置Nginx
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        validate: 'nginx -t -c %s'
+        backup: yes
+      async: 300
+      poll: 10

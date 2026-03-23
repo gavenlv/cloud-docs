@@ -1,0 +1,23 @@
+storage-optimization:
+  s3:
+    lifecycle-rules:
+      - name: transition-to-ia
+        filter: prefix=logs/
+        transitions:
+          - days: 30
+            storage-class: STANDARD_IA
+          - days: 90
+            storage-class: GLACIER
+        expiration:
+          days: 365
+          
+    intelligent-tiering:
+      enabled: true
+      archive-access-tier: 90d
+      
+  ebs:
+    optimization:
+      - delete-unattached-volumes
+      - snapshot-cleanup:
+          retention: 30d
+          delete-orphaned: true

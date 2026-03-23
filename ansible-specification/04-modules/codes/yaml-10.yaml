@@ -1,0 +1,49 @@
+# return-data.yml
+---
+- name: 返回数据示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 获取文件信息
+      stat:
+        path: /var/www/html/index.html
+      register: file_info
+    
+    - name: 显示文件信息
+      debug:
+        msg:
+          - "文件路径: {{ file_info.stat.path }}"
+          - "文件大小: {{ file_info.stat.size }} 字节"
+          - "文件权限: {{ file_info.stat.mode }}"
+          - "文件所有者: {{ file_info.stat.pw_name }}"
+          - "文件组: {{ file_info.stat.gr_name }}"
+          - "文件类型: {{ file_info.stat.issym | ternary('符号链接', file_info.stat.isdir | ternary('目录', '文件')) }}"
+    
+    - name: 执行命令
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+    
+    - name: 显示命令输出
+      debug:
+        msg:
+          - "命令: {{ nginx_test.cmd }}"
+          - "返回码: {{ nginx_test.rc }}"
+          - "标准输出: {{ nginx_test.stdout }}"
+          - "标准错误: {{ nginx_test.stderr }}"
+    
+    - name: 获取URL内容
+      uri:
+        url: http://localhost
+        method: GET
+        return_content: yes
+      register: web_content
+      changed_when: false
+    
+    - name: 显示URL内容
+      debug:
+        msg:
+          - "URL: {{ web_content.url }}"
+          - "状态码: {{ web_content.status }}"
+          - "内容类型: {{ web_content.content_type }}"
+          - "内容长度: {{ web_content.content | length }}"

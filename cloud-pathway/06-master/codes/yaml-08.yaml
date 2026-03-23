@@ -1,0 +1,45 @@
+technology-selection:
+
+evaluation-criteria:
+  - name: maturity
+    weight: 0.2
+    factors:
+      - community-size
+      - production-adoption
+      - vendor-support
+      
+  - name: fit
+    weight: 0.3
+    factors:
+      - use-case-alignment
+      - integration-capability
+      - skill-availability
+      
+  - name: sustainability
+    weight: 0.2
+    factors:
+      - governance-model
+      - roadmap-clarity
+      - financial-backing
+      
+  - name: risk
+    weight: 0.3
+    factors:
+      - vendor-lockin
+      - security-posture
+      - operational-complexity
+
+decision-matrix:
+  - technology: kubernetes
+    maturity: 5
+    fit: 5
+    sustainability: 5
+    risk: 3
+    recommendation: adopt
+    
+  - technology: wasm
+    maturity: 3
+    fit: 4
+    sustainability: 4
+    risk: 4
+    recommendation: evaluate

@@ -1,0 +1,26 @@
+# facts-optimization.yml
+---
+- name: Facts收集优化示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 禁用Facts收集
+      setup:
+      when: false
+    
+    - name: 只收集特定Facts
+      setup:
+        gather_subset:
+          - "!all"
+          - "!facter"
+          - "!ohai"
+          - network
+          - virtual
+    
+    - name: 使用Facts缓存
+      setup:
+      when: ansible_date_time.epoch | int - ansible_facts_cache_timestamp | int > 3600
+    
+    - name: 使用自定义Facts
+      debug:
+        msg: "自定义Fact: {{ ansible_local.custom_fact }}"

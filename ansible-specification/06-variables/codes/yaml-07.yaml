@@ -1,0 +1,18 @@
+# task-vars.yml
+---
+- name: Task变量示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 设置Task变量
+      set_fact:
+        task_http_port: 80
+        task_https_port: 443
+    
+    - name: 显示Task变量
+      debug:
+        msg: "Task HTTP端口: {{ task_http_port }}"
+    
+    - name: 在另一个Task中使用Task变量
+      debug:
+        msg: "Task HTTPS端口: {{ task_https_port }}"

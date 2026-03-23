@@ -1,0 +1,25 @@
+# number-vars.yml
+---
+- name: 数字变量示例
+  hosts: webservers
+  become: true
+  vars:
+    integer_var: 42
+    float_var: 3.14
+    negative_var: -10
+  tasks:
+    - name: 显示整数变量
+      debug:
+        msg: "整数: {{ integer_var }}"
+    
+    - name: 显示浮点数变量
+      debug:
+        msg: "浮点数: {{ float_var }}"
+    
+    - name: 显示负数变量
+      debug:
+        msg: "负数: {{ negative_var }}"
+    
+    - name: 数字运算
+      debug:
+        msg: "运算结果: {{ integer_var + float_var }}"

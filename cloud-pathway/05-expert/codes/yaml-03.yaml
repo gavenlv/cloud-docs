@@ -1,0 +1,31 @@
+dependency-security-pipeline:
+
+name: Dependency Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Snyk
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+        
+    - name: Run npm audit
+      run: npm audit --audit-level=high
+      
+    - name: Run pip-audit
+      run: |
+        pip install pip-audit
+        pip-audit --desc-only --ignore-vuln PYSEC-2023-123

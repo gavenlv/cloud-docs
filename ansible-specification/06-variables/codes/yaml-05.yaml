@@ -1,0 +1,16 @@
+# global-vars.yml
+---
+- name: 全局变量示例
+  hosts: webservers
+  become: true
+  vars:
+    global_http_port: 80
+    global_https_port: 443
+  tasks:
+    - name: 显示全局变量
+      debug:
+        msg: "全局HTTP端口: {{ global_http_port }}"
+    
+    - name: 在Task中使用全局变量
+      debug:
+        msg: "全局HTTPS端口: {{ global_https_port }}"

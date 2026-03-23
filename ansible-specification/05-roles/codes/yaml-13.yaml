@@ -1,0 +1,12 @@
+# playbook-with-roles.yml
+---
+- name: 使用角色变量的Playbook
+  hosts: webservers
+  become: true
+  roles:
+    - role: nginx
+      vars:
+        nginx_port: 8080
+        nginx_document_root: /var/www/myapp
+        nginx_server_name: myapp.example.com
+        nginx_ssl_enabled: true

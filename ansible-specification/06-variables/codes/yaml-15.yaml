@@ -1,0 +1,39 @@
+# string-filters.yml
+---
+- name: 字符串过滤示例
+  hosts: webservers
+  become: true
+  vars:
+    string_var: "Hello, World!"
+  tasks:
+    - name: 转换为大写
+      debug:
+        msg: "{{ string_var | upper }}"
+    
+    - name: 转换为小写
+      debug:
+        msg: "{{ string_var | lower }}"
+    
+    - name: 首字母大写
+      debug:
+        msg: "{{ string_var | capitalize }}"
+    
+    - name: 替换字符串
+      debug:
+        msg: "{{ string_var | replace('World', 'Ansible') }}"
+    
+    - name: 删除空格
+      debug:
+        msg: "{{ string_var | replace(' ', '') }}"
+    
+    - name: 字符串长度
+      debug:
+        msg: "{{ string_var | length }}"
+    
+    - name: 字符串分割
+      debug:
+        msg: "{{ string_var | split(',') }}"
+    
+    - name: 字符串连接
+      debug:
+        msg: "{{ ['Hello', 'World'] | join(', ') }}"

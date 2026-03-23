@@ -1,0 +1,3 @@
+# 手动编辑terraform.tfstate
+vim terraform.tfstate
+# 修改资源ID...

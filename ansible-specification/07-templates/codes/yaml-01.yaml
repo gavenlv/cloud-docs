@@ -1,0 +1,24 @@
+# playbook-template-inheritance.yml
+---
+- name: 使用模板继承的Playbook示例
+  hosts: webservers
+  become: true
+  vars:
+    server_name: example.com
+    http_port: 80
+  tasks:
+    - name: 创建文档根目录
+      file:
+        path: /var/www/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+    
+    - name: 创建首页（使用模板继承）
+      template:
+        src: templates/index.j2
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'

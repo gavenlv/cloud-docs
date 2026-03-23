@@ -1,0 +1,45 @@
+# loop循环示例
+
+- name: loop循环示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装多个包
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - nginx
+        - nginx-extras
+        - python3-certbot-nginx
+    
+    - name: 创建多个目录
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /var/www/html
+        - /var/log/nginx
+        - /etc/nginx/conf.d
+    
+    - name: 创建多个文件
+      file:
+        path: "{{ item.path }}"
+        state: touch
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: /var/www/html/index.html, mode: '0644' }
+        - { path: /var/log/nginx/access.log, mode: '0644' }
+        - { path: /var/log/nginx/error.log, mode: '0644' }
+    
+    - name: 配置多个服务
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - nginx
+        - mysql
+        - redis

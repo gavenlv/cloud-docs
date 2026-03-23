@@ -1,0 +1,49 @@
+# YAML格式Inventory
+
+all:
+  children:
+    webservers:
+      hosts:
+        web1.example.com:
+          ansible_host: 192.168.1.10
+          ansible_port: 2222
+          http_port: 80
+        web2.example.com:
+          ansible_host: 192.168.1.11
+          ansible_port: 2222
+          http_port: 80
+        web3.example.com:
+          ansible_host: 192.168.1.12
+          ansible_port: 2222
+          http_port: 80
+      vars:
+        ansible_user: ansible
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa
+        ansible_python_interpreter: /usr/bin/python3
+        https_port: 443
+        document_root: /var/www/html
+    dbservers:
+      hosts:
+        db1.example.com:
+          ansible_host: 192.168.1.20
+          mysql_port: 3306
+        db2.example.com:
+          ansible_host: 192.168.1.21
+          mysql_port: 3306
+      vars:
+        ansible_user: ansible
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa
+        ansible_python_interpreter: /usr/bin/python3
+        mysql_root_password: secret
+    production:
+      children:
+        webservers:
+        dbservers:
+    staging:
+      children:
+        webservers:
+        dbservers:
+  vars:
+    ansible_user: ansible
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa
+    ansible_python_interpreter: /usr/bin/python3

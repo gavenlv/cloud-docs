@@ -1,0 +1,1 @@
+dmesg, journalctl, systemctl status, ss, df, du, top, strace, lsof

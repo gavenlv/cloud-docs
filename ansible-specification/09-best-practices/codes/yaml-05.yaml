@@ -1,0 +1,28 @@
+# permission-control.yml
+---
+- name: 权限控制示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建目录
+      file:
+        path: /var/www/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+    
+    - name: 创建文件
+      file:
+        path: /var/www/html/index.html
+        state: touch
+        owner: www-data
+        group: www-data
+        mode: '0644'
+    
+    - name: 配置sudo权限
+      copy:
+        content: "ansible ALL=(ALL) NOPASSWD:ALL"
+        dest: /etc/sudoers.d/ansible
+        mode: '0440'
+        validate: 'visudo -cf %s'

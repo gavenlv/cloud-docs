@@ -1,0 +1,83 @@
+# system-modules.yml
+---
+- name: 系统模块示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 执行命令
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+    
+    - name: 执行Shell命令
+      shell: |
+        if [ -f /etc/nginx/nginx.conf ]; then
+          nginx -t
+        else
+          echo "Nginx配置文件不存在"
+          exit 1
+        fi
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+    
+    - name: 设置环境变量
+      environment:
+        PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+        NODE_ENV: production
+      command: node app.js
+    
+    - name: 创建Cron任务
+      cron:
+        name: "备份数据库"
+        minute: "0"
+        hour: "2"
+        job: "/usr/bin/mysqldump -u root -p{{ mysql_password }} appdb > /backup/appdb_$(date +\%Y\%m\%d).sql"
+        state: present
+    
+    - name: 删除Cron任务
+      cron:
+        name: "备份数据库"
+        state: absent
+    
+    - name: 创建Cron任务（带特殊字符）
+      cron:
+        name: "备份数据库"
+        minute: "0"
+        hour: "2"
+        job: "/usr/bin/mysqldump -u root -p'{{ mysql_password }}' appdb > /backup/appdb_$(date +\\%Y\\%m\\%d).sql"
+        state: present
+    
+    - name: 配置时区
+      timezone:
+        name: Asia/Shanghai
+    
+    - name: 配置主机名
+      hostname:
+        name: webserver01
+    
+    - name: 配置系统内核参数
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        state: present
+        reload: yes
+    
+    - name: 配置多个系统内核参数
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: 'net.ipv4.ip_forward', value: '1' }
+        - { name: 'net.ipv4.conf.all.forwarding', value: '1' }
+        - { name: 'net.ipv6.conf.all.forwarding', value: '1' }
+    
+    - name: 配置系统限制
+      pam_limits:
+        domain: '*'
+        limit_type: soft
+        limit_item: nofile
+        value: 65536

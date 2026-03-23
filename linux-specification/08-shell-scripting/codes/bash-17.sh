@@ -1,0 +1,1 @@
+echo, read, test, [, [[, for, while, until, case, function, set, shopt

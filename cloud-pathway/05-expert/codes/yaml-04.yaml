@@ -1,0 +1,38 @@
+container-security-pipeline:
+
+name: Container Security
+
+on:
+  push:
+    paths:
+    - 'Dockerfile'
+    - 'docker/**'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build image
+      run: docker build -t myapp:${{ github.sha }} .
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'myapp:${{ github.sha }}'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Run Grype scanner
+      uses: anchore/scan-action@v3
+      with:
+        image: 'myapp:${{ github.sha }}'
+        fail-build: true
+        severity-cutoff: high

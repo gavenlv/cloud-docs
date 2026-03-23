@@ -1,0 +1,138 @@
+# cloudbuild.yaml - 完整配置示例
+# ============================================================
+# 原理说明：
+# cloudbuild.yaml 是 Cloud Build 的配置文件
+# 定义了构建的步骤、环境变量、工作目录等
+# ============================================================
+
+# 替换变量
+substitutions:
+  _VERSION: "1.0.0"
+  _ENV: "production"
+  _SERVICE_NAME: "my-app"
+
+# 选项配置
+options:
+  # 日志选项
+  logging: CLOUD_LOGGING_ONLY
+  
+  # 超时时间（最大60分钟）
+  timeout: 1800s
+  
+  # 环境变量
+  env:
+    - NODE_ENV=production
+  
+  # 替代Dockerfile构建
+  # dockerImage: gcr.io/cloud-builders/docker
+
+# 可用机器类型
+# e2-medium (默认), e2-standard-4, n1-highmem-8 等
+
+# 构建步骤
+steps:
+  # ============================================================
+  # 步骤1: 安装依赖
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+    env: ['NODE_ENV=${_ENV}']
+    id: 'install-dependencies'
+    entrypoint: 'npm'
+  
+  # ============================================================
+  # 步骤2: 代码检查
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'lint']
+    env: ['NODE_ENV=${_ENV}']
+    id: 'code-lint'
+    entrypoint: 'npm'
+  
+  # ============================================================
+  # 步骤3: 运行测试
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['test', '--', '--coverage', '--passWithNoTests']
+    env: ['NODE_ENV=test']
+    id: 'run-tests'
+    entrypoint: 'npm'
+  
+  # ============================================================
+  # 步骤4: 构建应用
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'build']
+    env: ['NODE_ENV=${_ENV}']
+    id: 'build-app'
+    entrypoint: 'npm'
+  
+  # ============================================================
+  # 步骤5: 构建Docker镜像
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${_VERSION}',
+      '-t', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest',
+      '-t', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}',
+      '.'
+    ]
+    id: 'build-docker-image'
+  
+  # ============================================================
+  # 步骤6: 漏洞扫描（可选）
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'run', '--rm',
+      '-v', '/workspace:/workspace',
+      'aquasec/trivy:latest',
+      'image',
+      '--severity', 'CRITICAL,HIGH',
+      '--exit-code', '1',
+      '--ignore-unfixed',
+      'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${_VERSION}'
+    ]
+    id: 'vulnerability-scan'
+  
+  # ============================================================
+  # 步骤7: 推送镜像
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${_VERSION}']
+    id: 'push-version'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
+    id: 'push-latest'
+  
+  # ============================================================
+  # 步骤8: 部署到Cloud Run
+  # ============================================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy',
+      '${_SERVICE_NAME}',
+      '--image', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${_VERSION}',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'VERSION=${_VERSION},ENV=${_ENV}'
+    ]
+    id: 'deploy-cloud-run'
+
+# 镜像
+images:
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${_VERSION}'
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+
+# 等待触发的构建完成
+# timeout: 1800s
+
+# tags用于过滤日志
+tags:
+  - '${_SERVICE_NAME}'
+  - 'build'
+  - '${_ENV}'

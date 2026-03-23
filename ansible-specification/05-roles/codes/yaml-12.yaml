@@ -1,0 +1,13 @@
+# roles/nginx/vars/main.yml
+---
+nginx_packages:
+  - nginx
+  - nginx-extras
+  - python3-certbot-nginx
+
+nginx_config_file: /etc/nginx/nginx.conf
+nginx_sites_available: /etc/nginx/sites-available
+nginx_sites_enabled: /etc/nginx/sites-enabled
+
+nginx_user: www-data
+nginx_group: www-data

@@ -1,0 +1,19 @@
+﻿version: "3.8"
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "${WEB_PORT:-80}:80"
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DEBUG=${DEBUG:-false}
+    env_file:
+      - .env
+      - .env.${APP_ENV:-production}
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge

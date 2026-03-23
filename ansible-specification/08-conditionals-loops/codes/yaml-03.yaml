@@ -1,0 +1,85 @@
+# 条件测试示例
+
+- name: 条件测试示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 检查变量是否定义
+      debug:
+        msg: "变量已定义"
+      when: nginx_port is defined
+    
+    - name: 检查变量是否未定义
+      debug:
+        msg: "变量未定义"
+      when: nginx_port is undefined
+    
+    - name: 检查变量是否为数字
+      debug:
+        msg: "变量是数字"
+      when: nginx_port is number
+    
+    - name: 检查变量是否为字符串
+      debug:
+        msg: "变量是字符串"
+      when: server_name is string
+    
+    - name: 检查变量是否为布尔值
+      debug:
+        msg: "变量是布尔值"
+      when: nginx_ssl_enabled is boolean
+    
+    - name: 检查变量是否为真
+      debug:
+        msg: "变量为真"
+      when: nginx_ssl_enabled
+    
+    - name: 检查变量是否为假
+      debug:
+        msg: "变量为假"
+      when: not nginx_ssl_enabled
+    
+    - name: 检查列表是否为空
+      debug:
+        msg: "列表为空"
+      when: nginx_packages | length == 0
+    
+    - name: 检查列表是否不为空
+      debug:
+        msg: "列表不为空"
+      when: nginx_packages | length > 0
+    
+    - name: 检查字符串是否匹配
+      debug:
+        msg: "字符串匹配"
+      when: server_name is match('example\\.com')
+    
+    - name: 检查字符串是否搜索
+      debug:
+        msg: "字符串搜索"
+      when: server_name is search('example')
+    
+    - name: 检查文件是否存在
+      stat:
+        path: /etc/nginx/nginx.conf
+      register: nginx_config_stat
+    
+    - name: 检查文件是否存在
+      debug:
+        msg: "文件存在"
+      when: nginx_config_stat.stat.exists
+    
+    - name: 检查文件是否为目录
+      debug:
+        msg: "文件是目录"
+      when: nginx_config_stat.stat.isdir
+    
+    - name: 检查文件是否为文件
+      debug:
+        msg: "文件是文件"
+      when: nginx_config_stat.stat.isfile
+    
+    - name: 检查版本比较
+      debug:
+        msg: "版本>=20.04"
+      when: ansible_distribution_version is version('20.04', '>=')

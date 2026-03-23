@@ -1,0 +1,23 @@
+cdn-configuration:
+  origins:
+    - domain: api.example.com
+      origin-path: /v1
+      custom-headers:
+        - name: X-Custom-Header
+          value: value
+          
+  behaviors:
+    - path: /api/*
+      cache-policy:
+        ttl: 0
+        forward-cookies: all
+        forward-headers: all
+        
+    - path: /static/*
+      cache-policy:
+        ttl: 86400
+        compress: true
+        
+  edge-functions:
+    - path: /api/*
+      function: auth-validator

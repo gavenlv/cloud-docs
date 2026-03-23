@@ -1,0 +1,31 @@
+# host_vars/web1.example.com
+---
+ansible_host: 192.168.1.10
+ansible_port: 2222
+ansible_user: ansible
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+ansible_python_interpreter: /usr/bin/python3
+
+# 主机特定变量
+http_port: 80
+https_port: 443
+document_root: /var/www/html/web1
+server_name: web1.example.com
+
+# 主机标签
+tags:
+  - web
+  - production
+  - frontend
+
+# 主机配置
+nginx:
+  worker_processes: 4
+  worker_connections: 1024
+  keepalive_timeout: 65
+
+# 主机监控
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  alerting_enabled: true

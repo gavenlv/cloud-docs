@@ -1,154 +1,209 @@
-# 网络专家级专题
+# Network专题
 
 ## 概述
 
-本专题提供计算机网络从基础到专家级的完整知识体系，重点关注**底层技术原理**而非表面操作命令。通过本专题的学习，你将理解网络协议如何工作，数据包如何在网络中传输，以及如何进行专业的网络故障诊断和安全防护。
-
-## 专题特点
-
-- **原理优先**: 每个知识点都从底层原理出发，解释"为什么"而不是"怎么做"
-- **实战导向**: 所有概念都配有可运行的代码示例
-- **代码验证**: 每章代码独立可用，提供验证脚本确保正确性
-- **专家深度**: 涵盖协议栈、数据封装、加密机制等核心知识
+本专题提供从基础到专家级的网络教程，涵盖网络基础、TCP/IP协议、路由、DNS原理、网络安全、防火墙、VPN隧道、网络监控和故障排除。
 
 ## 目录结构
 
 ```
 network-specification/
-├── 01-network-fundamentals.md      # 网络基础和协议栈
-├── 02-tcpip-protocol.md           # TCP/IP协议详解
-├── 03-routing.md                  # 路由原理
-├── 04-dns-principles.md           # DNS原理
-├── 05-network-security.md          # 网络安全
-├── 06-firewall.md                  # 防火墙和iptables
-├── 07-vpn-tunnel.md               # VPN和隧道技术
-├── 08-network-monitoring.md        # 网络监控和诊断
-├── 09-troubleshooting.md          # 常见错误处理
-├── VERIFICATION.md                # 代码验证说明
-└── verify-*.sh                    # 验证脚本
+├── README.md                              # 本文件
+├── 01-network-fundamentals/              # 网络基础
+│   ├── 01-network-fundamentals.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-06.sh
+├── 02-tcpip-protocol/                    # TCP/IP协议
+│   ├── 02-tcpip-protocol.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-07.sh
+├── 03-routing/                           # 路由
+│   ├── 03-routing.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-07.sh
+├── 04-dns-principles/                    # DNS原理
+│   ├── 04-dns-principles.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-06.sh
+├── 05-network-security/                  # 网络安全
+│   ├── 05-network-security.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-07.sh
+├── 06-firewall/                         # 防火墙
+│   ├── 06-firewall.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-11.sh
+├── 07-vpn-tunnel/                       # VPN隧道
+│   ├── 07-vpn-tunnel.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-07.sh
+├── 08-network-monitoring/                # 网络监控
+│   ├── 08-network-monitoring.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-11.sh
+├── 09-troubleshooting/                  # 故障排除
+│   ├── 09-troubleshooting.md
+│   └── codes/
+│       └── bash-01.sh ~ bash-13.sh
+├── VERIFICATION.md                       # 代码验证说明
+├── verify-network.ps1                    # Windows验证脚本
+└── verify-network.sh                     # Linux/macOS验证脚本
 ```
-
-## 章节内容
-
-### 第一章：网络基础和协议栈
-
-- OSI七层模型
-- TCP/IP四层模型
-- 数据封装与解封装
-- 网络设备与层次对应
-- Ethernet帧格式、IP头格式
-
-### 第二章：TCP/IP协议详解
-
-- TCP头部格式
-- TCP状态机
-- 三次握手和四次挥手
-- 可靠传输机制
-- 滑动窗口与流量控制
-- 拥塞控制算法
-- TCP vs UDP
-
-### 第三章：路由原理
-
-- 路由器工作原理
-- 路由表结构
-- 路由查找过程（最长前缀匹配）
-- 静态路由配置
-- 动态路由协议（RIP、OSPF、BGP）
-- 策略路由和负载均衡
-- NAT原理
-
-### 第四章：DNS原理
-
-- DNS层级结构
-- 递归查询与迭代查询
-- DNS记录类型（A、AAAA、CNAME、MX、NS、TXT）
-- TTL和缓存机制
-- DNSSEC和DNS安全
-
-### 第五章：网络安全
-
-- 对称加密与非对称加密
-- TLS/SSL握手过程
-- 常见网络攻击（DDoS、MITM、ARP欺骗）
-- 网络隔离和访问控制
-- 加密通信配置
-
-### 第六章：防火墙和iptables
-
-- netfilter框架原理
-- iptables四表五链结构
-- 数据包处理流程
-- NAT配置（SNAT、DNAT）
-- 防攻击配置
-- nftables和firewalld
-
-### 第七章：VPN和隧道技术
-
-- VPN原理和应用场景
-- IPSec协议（AH、ESP、IKE）
-- OpenVPN配置
-- WireGuard配置
-- GRE隧道、IP-in-IP隧道
-
-### 第八章：网络监控和诊断
-
-- 基础诊断工具（ping、traceroute、mtr）
-- 连接状态分析（ss、netstat）
-- 抓包分析（tcpdump）
-- 带宽测试（iperf3）
-- 监控体系
-
-### 第九章：常见错误处理
-
-- 连通性问题诊断
-- 端口和服务问题
-- 路由问题
-- 性能问题
-- 安全问题
-
-## 学习路径
-
-```
-入门阶段（1-2周）
-  └─ 第1-2章：掌握网络协议基础
-
-进阶阶段（2-3周）
-  └─ 第3-4章：路由和DNS
-
-实战阶段（2-3周）
-  └─ 第5-7章：网络安全和VPN
-
-专家阶段（1-2周）
-  └─ 第8-9章：监控和排错
-```
-
-## 前置要求
-
-- 基本的计算机操作能力
-- 了解IP地址、子网掩码等基本概念
-- 一台Linux虚拟机或物理机
 
 ## 快速开始
 
+### 查看网络配置
+
 ```bash
-# 克隆文档仓库
-git clone https://github.com/your-repo/cloud-docs.git
-
-# 进入网络专题目录
-cd cloud-docs/network-specification
-
-# 运行验证脚本
-bash verify-network.sh
+ip addr
+ifconfig
+netstat -tuln
 ```
 
-## 代码验证
+### 测试网络连通性
 
-本专题所有代码示例都经过验证，确保可运行。详情请参阅 [VERIFICATION.md](network-specification/VERIFICATION.md)。
+```bash
+ping -c 4 8.8.8.8
+traceroute 8.8.8.8
+```
 
-## 相关专题
+## 章节运行指南
 
-- [Kubernetes专题](../kubernetes-specification/) - 容器编排
-- [Docker专题](../docker-specification/) - 容器技术
-- [Linux专题](../linux-specification/) - 系统管理
-- [Terraform专题](../terraform-specification/) - 基础设施即代码
+### 01-network-fundamentals - 网络基础
+
+**运行命令：**
+```bash
+cd 01-network-fundamentals/codes
+bash bash-01.sh
+```
+
+### 02-tcpip-protocol - TCP/IP协议
+
+**运行命令：**
+```bash
+cd 02-tcpip-protocol/codes
+bash bash-01.sh
+```
+
+### 03-routing - 路由
+
+**运行命令：**
+```bash
+cd 03-routing/codes
+bash bash-01.sh
+```
+
+### 04-dns-principles - DNS原理
+
+**运行命令：**
+```bash
+cd 04-dns-principles/codes
+bash bash-01.sh
+```
+
+### 05-network-security - 网络安全
+
+**运行命令：**
+```bash
+cd 05-network-security/codes
+bash bash-01.sh
+```
+
+### 06-firewall - 防火墙
+
+**运行命令：**
+```bash
+cd 06-firewall/codes
+bash bash-01.sh
+```
+
+### 07-vpn-tunnel - VPN隧道
+
+**运行命令：**
+```bash
+cd 07-vpn-tunnel/codes
+bash bash-01.sh
+```
+
+### 08-network-monitoring - 网络监控
+
+**运行命令：**
+```bash
+cd 08-network-monitoring/codes
+bash bash-01.sh
+```
+
+### 09-troubleshooting - 故障排除
+
+**运行命令：**
+```bash
+cd 09-troubleshooting/codes
+bash bash-01.sh
+```
+
+## 代码提取统计
+
+| 章节 | 代码类型 | 数量 |
+|------|----------|------|
+| 01-network-fundamentals | bash | 6 |
+| 02-tcpip-protocol | bash | 7 |
+| 03-routing | bash | 7 |
+| 04-dns-principles | bash | 6 |
+| 05-network-security | bash | 7 |
+| 06-firewall | bash | 11 |
+| 07-vpn-tunnel | bash | 7 |
+| 08-network-monitoring | bash | 11 |
+| 09-troubleshooting | bash | 13 |
+
+## 学习路径
+
+### 初级路径
+
+1. [01-network-fundamentals](./01-network-fundamentals/) - 掌握网络基础
+2. [02-tcpip-protocol](./02-tcpip-protocol/) - 掌握TCP/IP协议
+
+### 中级路径
+
+1. [03-routing](./03-routing/) - 掌握路由
+2. [04-dns-principles](./04-dns-principles/) - 掌握DNS原理
+3. [05-network-security](./05-network-security/) - 掌握网络安全
+
+### 高级路径
+
+1. [06-firewall](./06-firewall/) - 掌握防火墙
+2. [07-vpn-tunnel](./07-vpn-tunnel/) - 掌握VPN隧道
+3. [08-network-monitoring](./08-network-monitoring/) - 掌握网络监控
+4. [09-troubleshooting](./09-troubleshooting/) - 掌握故障排除
+
+## 前置要求
+
+### 必备工具
+
+- Linux系统或WSL
+- 网络工具（ip, ifconfig, netstat, ping等）
+
+## 常见问题
+
+### Q: 网络连接失败？
+
+A: 检查网络配置和路由表：
+```bash
+ip addr
+ip route
+ping 8.8.8.8
+```
+
+### Q: 端口被占用？
+
+A: 查看端口占用情况：
+```bash
+netstat -tuln | grep PORT
+```
+
+### Q: DNS解析失败？
+
+A: 检查DNS配置：
+```bash
+cat /etc/resolv.conf
+nslookup example.com
+```

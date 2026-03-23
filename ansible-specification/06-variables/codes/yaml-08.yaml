@@ -1,0 +1,13 @@
+# host-vars.yml
+---
+- name: 主机变量示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 显示主机变量
+      debug:
+        msg: "主机HTTP端口: {{ http_port }}"
+    
+    - name: 显示主机变量
+      debug:
+        msg: "主机HTTPS端口: {{ https_port }}"

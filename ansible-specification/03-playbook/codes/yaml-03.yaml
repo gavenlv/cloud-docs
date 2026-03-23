@@ -1,0 +1,72 @@
+# playbook-attributes.yml
+---
+- name: Play属性示例
+  hosts: webservers
+  become: true
+  become_method: sudo
+  become_user: root
+  become_flags: '-H -S -n'
+  remote_user: ansible
+  gather_facts: true
+  fact_path: /etc/ansible/facts.d
+  vars:
+    http_port: 80
+    document_root: /var/www/html
+  vars_files:
+    - vars/common.yml
+    - vars/webservers.yml
+  vars_prompt:
+    - name: mysql_root_password
+      prompt: "请输入MySQL root密码"
+      private: yes
+      confirm: yes
+  pre_tasks:
+    - name: 检查系统版本
+      debug:
+        msg: "系统版本: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+    
+    - name: 检查可用内存
+      debug:
+        msg: "可用内存: {{ ansible_memtotal_mb }} MB"
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      notify:
+        - 重启Nginx服务
+    
+    - name: 配置Nginx
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - 重启Nginx服务
+    
+    - name: 创建文档根目录
+      file:
+        path: "{{ document_root }}"
+        state: directory
+        mode: '0755'
+  post_tasks:
+    - name: 验证Nginx配置
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+    
+    - name: 显示Nginx配置测试结果
+      debug:
+        msg: "{{ nginx_test.stdout }}"
+  handlers:
+    - name: 重启Nginx服务
+      service:
+        name: nginx
+        state: restarted
+  roles:
+    - role: common
+    - role: nginx
+      vars:
+        http_port: 80
+    - role: monitoring
+      when: monitoring_enabled | default(false)

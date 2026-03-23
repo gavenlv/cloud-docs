@@ -1,0 +1,1 @@
+journalctl, rsyslogd, logrotate, uptime, vmstat, iostat, free, df

@@ -1,0 +1,87 @@
+# handler-advanced.yml
+---
+- name: Handler高级用法示例
+  hosts: webservers
+  become: true
+  vars:
+    nginx_config_changed: false
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      register: nginx_install
+      notify:
+        - 重启Nginx服务
+    
+    - name: 配置Nginx
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        backup: yes
+        validate: 'nginx -t -c %s'
+      register: nginx_config
+      notify:
+        - 重启Nginx服务
+        - 重新加载Nginx配置
+    
+    - name: 标记配置变更
+      set_fact:
+        nginx_config_changed: true
+      when: nginx_config.changed
+    
+    - name: 创建文档根目录
+      file:
+        path: /var/www/html
+        state: directory
+        mode: '0755'
+      notify:
+        - 重新加载Nginx配置
+    
+    - name: 创建首页文件
+      copy:
+        content: "Hello, World!"
+        dest: /var/www/html/index.html
+        mode: '0644'
+      notify:
+        - 重新加载Nginx配置
+    
+    - name: 手动触发Handler
+      debug:
+        msg: "手动触发Handler"
+      changed_when: true
+      notify:
+        - 重新加载Nginx配置
+    
+    - name: 强制触发Handler
+      meta: flush_handlers
+    
+    - name: 显示配置变更状态
+      debug:
+        msg: "Nginx配置已变更: {{ nginx_config_changed }}"
+  handlers:
+    - name: 重启Nginx服务
+      service:
+        name: nginx
+        state: restarted
+      listen:
+        - 重启Nginx服务
+        - Nginx服务重启
+    
+    - name: 重新加载Nginx配置
+      service:
+        name: nginx
+        state: reloaded
+      listen:
+        - 重新加载Nginx配置
+        - Nginx配置重载
+      when: nginx_config_changed | bool
+    
+    - name: 测试Nginx配置
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+      listen:
+        - 测试Nginx配置

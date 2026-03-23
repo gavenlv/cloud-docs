@@ -1,0 +1,30 @@
+{
+  "version": 4,
+  "terraform_version": "1.5.0",
+  "serial": 1,
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "web-server",
+      "provider": "provider[\"registry.terraform.io/hashicorp/google\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "name": "web-server-1",
+            "machine_type": "e2-medium",
+            "zone": "us-central1-a",
+            "boot_disk": {
+              "initialize_params": {
+                "image": "debian-cloud/debian-11"
+              }
+            }
+          },
+          "private": "eyJz...加密数据...="
+        }
+      ]
+    }
+  ]
+}

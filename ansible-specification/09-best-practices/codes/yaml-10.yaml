@@ -1,0 +1,30 @@
+# .gitlab-ci.yml
+stages:
+  - lint
+  - test
+  - deploy
+
+lint:
+  stage: lint
+  image: python:3.9
+  script:
+    - pip install ansible ansible-lint yamllint
+    - yamllint .
+    - ansible-lint playbooks/
+
+test:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install ansible
+    - ansible-playbook playbooks/site.yml --syntax-check
+    - ansible-playbook playbooks/site.yml --check
+
+deploy:
+  stage: deploy
+  image: python:3.9
+  script:
+    - pip install ansible
+    - ansible-playbook playbooks/site.yml
+  only:
+    - main

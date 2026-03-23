@@ -1,0 +1,30 @@
+# group_vars/webservers.yml
+---
+ansible_user: ansible
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+ansible_python_interpreter: /usr/bin/python3
+
+# Web服务器配置
+http_port: 80
+https_port: 443
+document_root: /var/www/html
+
+# Nginx配置
+nginx:
+  worker_processes: auto
+  worker_connections: 1024
+  keepalive_timeout: 65
+  client_max_body_size: 100M
+
+# 应用配置
+app:
+  name: webapp
+  version: 1.0.0
+  port: 8080
+  environment: production
+
+# 监控配置
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  alerting_enabled: true

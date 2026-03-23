@@ -1,0 +1,37 @@
+# when条件示例
+
+- name: when条件示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装Nginx（Debian系统）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 安装Nginx（RedHat系统）
+      yum:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+    
+    - name: 配置Nginx（SSL启用）
+      template:
+        src: nginx-ssl.conf.j2
+        dest: /etc/nginx/nginx.conf
+      when: nginx_ssl_enabled | default(false)
+    
+    - name: 配置Nginx（SSL禁用）
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      when: not nginx_ssl_enabled | default(false)
+    
+    - name: 创建目录（如果不存在）
+      file:
+        path: /var/www/html
+        state: directory
+      when: not nginx_document_root_stat.stat.exists | default(false)

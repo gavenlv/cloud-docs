@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: consul-config
+data:
+  user-service.json: |
+    {
+      "service": {
+        "name": "user-service",
+        "tags": ["api", "v1"],
+        "port": 8080,
+        "check": {
+          "http": "http://localhost:8080/health",
+          "interval": "10s"
+        }
+      }
+    }

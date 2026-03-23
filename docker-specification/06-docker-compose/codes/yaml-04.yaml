@@ -1,0 +1,29 @@
+version: "3.8"
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/mysql
+      o: bind
+    labels:
+      - "com.example.description=Database data"
+
+  web-logs:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=100m,uid=1000
+    labels:
+      - "com.example.description=Web logs"
+
+  cache-data:
+    driver: local
+    labels:
+      - "com.example.description=Cache data"
+
+  external-volume:
+    external: true
+    name: my-external-volume

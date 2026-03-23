@@ -1,0 +1,50 @@
+{
+  "version": 4,
+  "terraform_version": "1.5.0",
+  "serial": 42,
+  "lineage": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "outputs": {
+    "vpc_id": {
+      "type": "string",
+      "value": "projects/my-project/global/networks/my-vpc"
+    }
+  },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "google_compute_network",
+      "name": "main_vpc",
+      "provider": "provider[\"registry.terraform.io/hashicorp/google\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "name": "my-vpc",
+            "id": "projects/my-project/global/networks/my-vpc",
+            "self_link": "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/my-vpc",
+            "auto_create_subnetworks": false,
+            "routing_config": [],
+            "mtu": 1460
+          },
+          "sensitive_attributes": [],
+          "private": "eyJz...加密的敏感数据...="
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "google_compute_image",
+      "name": "debian_image",
+      "provider": "provider[\"registry.terraform.io/hashicorp/google\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "name": "debian-11-bullseye-v20231010",
+            "source_image": "projects/debian-cloud/global/images/family/debian-11"
+          }
+        }
+      ]
+    }
+  ]
+}

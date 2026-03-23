@@ -1,0 +1,56 @@
+decision-framework:
+
+decision-types:
+  - name: 战略决策
+    examples:
+      - 技术平台选择
+      - 架构范式转变
+      - 重大技术投资
+    process:
+      - 收集信息
+      - 利益相关者输入
+      - 方案评估
+      - 风险分析
+      - 决策审批
+      - 沟通执行
+      
+  - name: 战术决策
+    examples:
+      - 技术选型
+      - 架构设计
+      - 工具选择
+    process:
+      - 需求分析
+      - 方案对比
+      - POC验证
+      - 团队评审
+      - 决策执行
+      
+  - name: 运营决策
+    examples:
+      - 性能优化
+      - 问题修复
+      - 流程改进
+    process:
+      - 问题识别
+      - 方案设计
+      - 实施验证
+
+decision-record:
+  template: |
+    # ADR-{number}: {title}
+    
+    ## Status
+    {Proposed|Accepted|Deprecated|Superseded}
+    
+    ## Context
+    {背景描述}
+    
+    ## Decision
+    {决策内容}
+    
+    ## Consequences
+    {影响分析}
+    
+    ## Alternatives Considered
+    {备选方案}

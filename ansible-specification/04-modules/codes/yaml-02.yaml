@@ -1,0 +1,84 @@
+# package-modules.yml
+---
+- name: 包管理模块示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 安装Nginx（Debian/Ubuntu）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+    
+    - name: 安装Nginx（RedHat/CentOS）
+      yum:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+    
+    - name: 安装多个包
+      apt:
+        name:
+          - nginx
+          - nginx-extras
+          - python3-certbot-nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 更新所有包
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 删除包
+      apt:
+        name: nginx
+        state: absent
+        purge: yes
+        autoremove: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 安装特定版本的包
+      apt:
+        name: nginx=1.18.0-0ubuntu1
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 从本地文件安装包
+      apt:
+        deb: /tmp/nginx_1.18.0-0ubuntu1_amd64.deb
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: 添加APT仓库
+      apt_repository:
+        repo: 'ppa:ondrej/nginx'
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: 添加APT密钥
+      apt_key:
+        url: https://nginx.org/keys/nginx_signing.key
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: 使用pip安装Python包
+      pip:
+        name:
+          - flask
+          - gunicorn
+        state: present
+        executable: pip3
+    
+    - name: 使用npm安装Node.js包
+      npm:
+        name: express
+        path: /var/www/html
+        state: present

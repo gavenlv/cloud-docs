@@ -1,0 +1,33 @@
+﻿version: "3.8"
+
+networks:
+  frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-frontend
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    attachable: true
+    internal: false
+    labels:
+      - "com.example.description=Frontend network"
+
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/16
+          gateway: 172.21.0.1
+    internal: true
+    labels:
+      - "com.example.description=Backend network"
+
+  external-network:
+    external: true
+    name: my-external-network

@@ -1,0 +1,20 @@
+database-optimization:
+  rds:
+    instance-rightsizing:
+      - analyze-cpu-utilization
+      - analyze-memory-utilization
+      - consider-serverless
+      
+    storage-optimization:
+      - enable-storage-autoscaling
+      - cleanup-unused-storage
+      
+  reserved:
+    - type: standard
+      term: 1-year
+      payment: partial-upfront
+      
+  serverless:
+    - aurora-serverless-v2
+      min-capacity: 0.5
+      max-capacity: 4

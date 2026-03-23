@@ -1,0 +1,17 @@
+# group_vars/webservers.yml
+---
+https_port: 8443
+server_name: example.com
+ssl_enabled: true
+ssl_cert_path: /etc/ssl/certs/example.com.crt
+ssl_key_path: /etc/ssl/private/example.com.key
+
+nginx_config:
+  worker_processes: auto
+  worker_connections: 1024
+  keepalive_timeout: 65
+
+nginx_packages:
+  - nginx
+  - nginx-extras
+  - python3-certbot-nginx

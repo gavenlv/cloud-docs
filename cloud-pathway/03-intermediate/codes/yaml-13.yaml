@@ -1,0 +1,12 @@
+# StorageClass示例
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-ssd
+provisioner: kubernetes.io/gce-pd  # 存储供应商
+parameters:
+  type: pd-ssd        # 磁盘类型
+  replication-type: regional-pd  # 区域复制
+reclaimPolicy: Delete  # 删除策略
+allowVolumeExpansion: true  # 允许扩容
+volumeBindingMode: WaitForFirstConsumer  # 延迟绑定

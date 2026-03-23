@@ -1,0 +1,17 @@
+tagging-strategy:
+  required-tags:
+    - key: Environment
+      values: [production, staging, development]
+    - key: Owner
+      pattern: email
+    - key: CostCenter
+      pattern: CC-\d{4}
+    - key: Project
+      pattern: "[a-z-]+"
+      
+  enforcement:
+    - resource-types:
+        - ec2:instance
+        - rds:db
+        - s3:bucket
+      action: deny-without-tags

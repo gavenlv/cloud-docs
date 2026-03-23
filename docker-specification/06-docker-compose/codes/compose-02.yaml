@@ -1,0 +1,119 @@
+﻿version: "3.8"
+
+services:
+  web:
+    # 闀滃儚閰嶇疆
+    image: nginx:latest
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: production
+
+    # 绔彛閰嶇疆
+    ports:
+      - "80:80"
+      - "443:443"
+    expose:
+      - "80"
+      - "443"
+
+    # 鐜鍙橀噺
+    environment:
+      - APP_ENV=production
+      - DEBUG=false
+    env_file:
+      - ./web.env
+
+    # 鍛戒护閰嶇疆
+    command: ["nginx", "-g", "daemon off;"]
+    entrypoint: ["/docker-entrypoint.sh"]
+
+    # 宸ヤ綔鐩綍
+    working_dir: /app
+
+    # 鐢ㄦ埛閰嶇疆
+    user: "1000:1000"
+
+    # 缃戠粶閰嶇疆
+    networks:
+      - frontend
+      - backend
+    network_mode: bridge
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    dns_search:
+      - example.com
+
+    # 瀛樺偍閰嶇疆
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - web-logs:/var/log/nginx
+    tmpfs:
+      - /tmp:size=100m
+    volume_driver: local
+
+    # 璧勬簮闄愬埗
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    cpu_shares: 512
+    mem_limit: 512m
+    mem_reservation: 256m
+
+    # 閲嶅惎绛栫暐
+    restart: always
+
+    # 鍋ュ悍妫€鏌?    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # 渚濊禆鍏崇郴
+    depends_on:
+      - db
+      - redis
+
+    # 鏍囩
+    labels:
+      - "com.example.description=Web server"
+      - "com.example.department=IT"
+
+    # 鏃ュ織閰嶇疆
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # 瀹夊叏閰嶇疆
+    security_opt:
+      - no-new-privileges:true
+    cap_add:
+      - NET_ADMIN
+    cap_drop:
+      - ALL
+    privileged: false
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+
+    # PID妯″紡
+    pid: "host"
+
+    # IPC妯″紡
+    ipc: "host"
+
+    # 鍏朵粬閰嶇疆
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    stdin_open: true
+    tty: true

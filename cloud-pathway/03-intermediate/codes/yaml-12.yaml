@@ -1,0 +1,34 @@
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data
+spec:
+  # 访问模式
+  accessModes:
+  - ReadWriteOnce
+
+  # 存储类（空表示不使用动态创建）
+  storageClassName: standard
+
+  # 资源请求
+  resources:
+    requests:
+      storage: 10Gi
+
+# Pod中使用PVC
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+  - name: app
+    image: my-app:1.0
+    volumeMounts:
+    - name: data
+      mountPath: /data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: pvc-data

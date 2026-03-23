@@ -1,0 +1,121 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - frontend
+    restart: always
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=mysql://root:example@user-db:3306/userdb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - user-db
+      - redis
+    networks:
+      - backend
+    restart: always
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=mysql://root:example@product-db:3306/productdb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - product-db
+      - redis
+    networks:
+      - backend
+    restart: always
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=mysql://root:example@order-db:3306/orderdb
+      - REDIS_URL=redis://redis:6379/0
+      - USER_SERVICE_URL=http://user-service:8000
+      - PRODUCT_SERVICE_URL=http://product-service:8000
+    depends_on:
+      - order-db
+      - redis
+      - user-service
+      - product-service
+    networks:
+      - backend
+    restart: always
+
+  user-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_DATABASE=userdb
+    volumes:
+      - user-db-data:/var/lib/mysql
+    networks:
+      - backend
+    restart: always
+
+  product-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_DATABASE=productdb
+    volumes:
+      - product-db-data:/var/lib/mysql
+    networks:
+      - backend
+    restart: always
+
+  order-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_DATABASE=orderdb
+    volumes:
+      - order-db-data:/var/lib/mysql
+    networks:
+      - backend
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+    restart: always
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+
+volumes:
+  user-db-data:
+    driver: local
+  product-db-data:
+    driver: local
+  order-db-data:
+    driver: local
+  redis-data:
+    driver: local

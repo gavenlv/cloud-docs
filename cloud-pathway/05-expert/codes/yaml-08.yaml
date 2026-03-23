@@ -1,0 +1,58 @@
+devsecops-pipeline:
+
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: SAST - Semgrep
+      uses: returntocorp/semgrep-action@v1
+      
+    - name: SAST - CodeQL
+      uses: github/codeql-action/analyze@v2
+      
+    - name: Dependency Scan
+      uses: snyk/actions/node@master
+      
+  container-scan:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Container
+      run: docker build -t app:${{ github.sha }} .
+      
+    - name: Container Scan - Trivy
+      uses: aquasecurity/trivy-action@master
+      
+    - name: Container Scan - Grype
+      uses: anchore/scan-action@v3
+      
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: IaC Scan - Checkov
+      uses: bridgecrewio/checkov-action@master
+      
+    - name: IaC Scan - tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      
+  deploy:
+    needs: [security-scan, container-scan, iac-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Deploy to Production
+      run: |
+        kubectl apply -f k8s/

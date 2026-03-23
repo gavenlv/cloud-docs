@@ -1,0 +1,48 @@
+# debug-module.yml
+---
+- name: 使用调试模块示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 显示变量
+      debug:
+        var: variable
+    
+    - name: 显示消息
+      debug:
+        msg: "Hello, World!"
+    
+    - name: 显示多个变量
+      debug:
+        msg:
+          - "变量1: {{ variable1 }}"
+          - "变量2: {{ variable2 }}"
+          - "变量3: {{ variable3 }}"
+    
+    - name: 显示字典
+      debug:
+        var: dictionary
+    
+    - name: 显示列表
+      debug:
+        var: list
+    
+    - name: 显示Facts
+      debug:
+        var: ansible_facts
+    
+    - name: 显示主机变量
+      debug:
+        var: hostvars[inventory_hostname]
+    
+    - name: 显示组变量
+      debug:
+        var: groups
+    
+    - name: 显示Inventory主机名
+      debug:
+        var: inventory_hostname
+    
+    - name: 显示Inventory主机名简称
+      debug:
+        var: inventory_hostname_short

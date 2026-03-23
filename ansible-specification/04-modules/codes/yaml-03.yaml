@@ -1,0 +1,71 @@
+# service-modules.yml
+---
+- name: 服务模块示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 启动Nginx服务
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+    
+    - name: 停止Nginx服务
+      service:
+        name: nginx
+        state: stopped
+        enabled: no
+    
+    - name: 重启Nginx服务
+      service:
+        name: nginx
+        state: restarted
+    
+    - name: 重新加载Nginx服务
+      service:
+        name: nginx
+        state: reloaded
+    
+    - name: 检查Nginx服务状态
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+      register: nginx_status
+    
+    - name: 显示Nginx服务状态
+      debug:
+        msg: "Nginx服务状态: {{ nginx_status.status.ActiveState }}"
+    
+    - name: 使用systemd管理服务
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+        daemon_reload: yes
+    
+    - name: 启动多个服务
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - nginx
+        - mysql
+        - redis
+    
+    - name: 等待服务启动
+      service:
+        name: nginx
+        state: started
+      register: nginx_service
+      until: nginx_service.status.ActiveState == "active"
+      retries: 5
+      delay: 5
+    
+    - name: 配置服务参数
+      systemd:
+        name: nginx
+        enabled: yes
+        masked: no
+        scope: system

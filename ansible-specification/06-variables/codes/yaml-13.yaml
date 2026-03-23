@@ -1,0 +1,39 @@
+# list-vars.yml
+---
+- name: 列表变量示例
+  hosts: webservers
+  become: true
+  vars:
+    list_var:
+      - item1
+      - item2
+      - item3
+    list_var_multiline:
+      - item1
+      - item2
+      - item3
+    list_var_flow: [item1, item2, item3]
+  tasks:
+    - name: 显示列表变量
+      debug:
+        msg: "{{ list_var }}"
+    
+    - name: 显示列表变量
+      debug:
+        msg: "{{ list_var_multiline }}"
+    
+    - name: 显示列表变量
+      debug:
+        msg: "{{ list_var_flow }}"
+    
+    - name: 访问列表元素
+      debug:
+        msg: "第一个元素: {{ list_var[0] }}"
+    
+    - name: 访问列表元素
+      debug:
+        msg: "最后一个元素: {{ list_var[-1] }}"
+    
+    - name: 列表长度
+      debug:
+        msg: "列表长度: {{ list_var | length }}"

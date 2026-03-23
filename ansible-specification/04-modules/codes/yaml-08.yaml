@@ -1,0 +1,31 @@
+# default-values.yml
+---
+- name: 默认值示例
+  hosts: webservers
+  become: true
+  vars:
+    default_owner: www-data
+    default_group: www-data
+    default_mode: '0644'
+  tasks:
+    - name: 创建文件（使用默认值）
+      file:
+        path: /var/www/html/index.html
+        state: touch
+        owner: "{{ default_owner }}"
+        group: "{{ default_group }}"
+        mode: "{{ default_mode }}"
+    
+    - name: 复制文件（使用默认值）
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: "{{ default_owner }}"
+        group: "{{ default_group }}"
+        mode: "{{ default_mode }}"
+    
+    - name: 安装包（使用默认值）
+      apt:
+        name: nginx
+        state: present
+        update_cache: "{{ ansible_date_time.epoch | int | int < ansible_date_time.epoch | int + 3600 | ternary('yes', 'no') }}"

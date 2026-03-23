@@ -1,0 +1,8 @@
+﻿version: "3.8"
+
+services:
+  web:
+    volumes:
+      - ./html:/usr/share/nginx/html
+    environment:
+      - DEBUG=true

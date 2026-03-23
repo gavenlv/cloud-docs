@@ -1,0 +1,63 @@
+talent-development:
+
+career-ladder:
+  - level: L1 - 初级工程师
+    expectations:
+      - 完成分配任务
+      - 遵循最佳实践
+      - 主动学习提升
+    skills:
+      technical: [基础编程, 版本控制, 测试]
+      soft: [沟通, 团队协作]
+      
+  - level: L2 - 中级工程师
+    expectations:
+      - 独立完成模块开发
+      - 参与技术决策
+      - 指导初级工程师
+    skills:
+      technical: [系统设计, 性能优化, 故障排查]
+      soft: [问题解决, 技术分享]
+      
+  - level: L3 - 高级工程师
+    expectations:
+      - 主导技术方案设计
+      - 跨团队协作
+      - 推动最佳实践
+    skills:
+      technical: [架构设计, 技术选型, 技术规划]
+      soft: [影响力, 项目管理]
+      
+  - level: L4 - Staff工程师
+    expectations:
+      - 技术战略制定
+      - 组织能力建设
+      - 培养技术人才
+    skills:
+      technical: [技术愿景, 战略规划]
+      soft: [领导力, 组织影响力]
+
+training-programs:
+  - name: 云原生基础
+    audience: L1-L2
+    duration: 40h
+    topics:
+      - 容器基础
+      - Kubernetes入门
+      - CI/CD实践
+      
+  - name: 架构设计
+    audience: L2-L3
+    duration: 60h
+    topics:
+      - 分布式系统
+      - 微服务架构
+      - 设计模式
+      
+  - name: 技术领导力
+    audience: L3-L4
+    duration: 40h
+    topics:
+      - 技术战略
+      - 团队管理
+      - 影响力构建

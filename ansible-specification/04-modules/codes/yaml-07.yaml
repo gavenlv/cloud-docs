@@ -1,0 +1,57 @@
+# optional-params.yml
+---
+- name: 可选参数示例
+  hosts: webservers
+  become: true
+  tasks:
+    - name: 创建文件（可选参数）
+      file:
+        path: /var/www/html/index.html
+        state: touch
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        modification_time: now
+        access_time: now
+    
+    - name: 复制文件（可选参数）
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        backup: yes
+        force: yes
+        remote_src: no
+    
+    - name: 安装包（可选参数）
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+        install_recommends: yes
+        allow_unauthenticated: no
+    
+    - name: 启动服务（可选参数）
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+        pattern: nginx
+        sleep: 5
+        timeout: 60
+    
+    - name: 创建用户（可选参数）
+      user:
+        name: webuser
+        state: present
+        shell: /bin/bash
+        home: /home/webuser
+        groups:
+          - www-data
+        append: yes
+        password: "{{ 'password' | password_hash('sha512') }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 4096
