@@ -1,0 +1,83 @@
+# GKE-values.yaml
+# Google Kubernetes Engine上部署Doris存算分离
+
+namespace: doris
+
+imageRegistry: apache/doris
+
+# FE配置
+fe:
+  replicas: 3
+  image:
+    repository: doris
+    tag: 2.1.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 2
+      memory: 4Gi
+    limits:
+      cpu: 4
+      memory: 8Gi
+  service:
+    type: ClusterIP
+    port: 9030
+  config:
+    FE_CONFIG: |
+      log_verbose_modules = *
+      max_connections_per_user = 100
+
+# 计算节点配置 (存算分离)
+compute:
+  replicas: 3
+  image:
+    repository: doris
+    tag: 2.1.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 4
+      memory: 8Gi
+    limits:
+      cpu: 8
+      memory: 16Gi
+  config:
+    BE_CONFIG: |
+      be_port = 9050
+      webserver_port = 8040
+      heartbeat_service_port = 9050
+      brpc_port = 9060
+      storage_root_path = /mnt/disk1/doris_cloud_cache
+      object_storage_endpoint = storage.googleapis.com
+      object_storage_region = us-central1
+      object_storage_bucket = doris-data-bucket
+      object_storage_access_key = $ACCESS_KEY
+      object_storage_secret_key = $SECRET_KEY
+      object_storage_use_https = true
+      cache_file_size = 20
+      cache_ttl_seconds = 86400
+  persistentVolumeClaim:
+    metadata:
+      name: doris-cloud-cache
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
+      storageClassName: standard-rwo
+  env:
+    - name: CLOUD_UNIQUE_ID
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+  serviceAccount:
+    create: true
+    annotations:
+      iam.gke.io/gcp-service-account: doris-storage-sa
+
+# 存储配置
+storage:
+  useGCS: true
+  gcs:
+    bucket: doris-data-bucket
+    projectId: YOUR_PROJECT_ID

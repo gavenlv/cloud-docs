@@ -1,0 +1,71 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: doris-sep-minio
+    hostname: minio
+    ports:
+      - "9100:9000"
+      - "9101:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./minio-data:/data
+    command: server /data --console-address ":9101"
+    networks:
+      - doris-net
+
+  fe1:
+    image: apache/doris:fe-3.1.4
+    container_name: doris-sep-fe1
+    hostname: fe1
+    ports:
+      - "8030:8030"
+      - "9030:9030"
+    environment:
+      FE_SERVERS: fe1:172.18.0.3:9010
+      FE_ID: 1
+      PRIORITY_NETWORKS: 172.18.0.0/16
+    volumes:
+      - ./fe1-meta:/opt/apache-doris/fe/meta
+      - ./fe1-log:/opt/apache-doris/fe/log
+    command: bash /opt/apache-doris/fe/bin/start_fe.sh --daemon
+    depends_on:
+      - minio
+    networks:
+      - doris-net
+
+  compute1:
+    image: apache/doris:be-3.1.4
+    container_name: doris-sep-compute1
+    hostname: compute1
+    ports:
+      - "8040:8040"
+      - "9050:9050"
+      - "9060:9060"
+    environment:
+      FE_SERVERS: fe1:172.18.0.3:9010
+      BE_ADDR: 172.18.0.4:9050
+      PRIORITY_NETWORKS: 172.18.0.0/16
+    volumes:
+      - ./compute1-cache:/mnt/disk1
+      - ./compute1-log:/opt/apache-doris/be/log
+      - ./compute1-storage:/opt/apache-doris/be/storage
+    command: bash /opt/apache-doris/be/bin/start_be.sh --daemon
+    depends_on:
+      - fe1
+      - minio
+    networks:
+      - doris-net
+
+volumes:
+  minio-data:
+  fe1-meta:
+  fe1-log:
+  compute1-cache:
+  compute1-log:
+  compute1-storage:
+
+networks:
+  doris-net:
+    external: true

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: doris-compute
+  namespace: doris
+spec:
+  serviceName: doris-compute
+  replicas: 3
+  selector:
+    matchLabels:
+      app: doris
+      component: compute
+  template:
+    metadata:
+      labels:
+        app: doris
+        component: compute
+    spec:
+      containers:
+      - name: compute
+        image: apache/doris:2.1.0
+        ports:
+        - containerPort: 8040
+          name: webserver
+        - containerPort: 9050
+          name: be
+        - containerPort: 9060
+          name: brpc
+        env:
+        - name: FE_SERVERS
+          value: "doris-fe-0.doris-fe.doris.svc.cluster.local:9010,doris-fe-1.doris-fe.doris.svc.cluster.local:9010,doris-fe-2.doris-fe.doris.svc.cluster.local:9010"
+        - name: BE_ADDRS
+          value: "doris-compute-0.doris-compute.doris.svc.cluster.local:9050,doris-compute-1.doris-compute.doris.svc.cluster.local:9050,doris-compute-2.doris-compute.doris.svc.cluster.local:9050"
+        - name: PRIORITY_NETWORKS
+          value: "172.20.0.0/16"
+        - name: OBJECT_STORAGE_ENDPOINT
+          value: "minio.doris.svc.cluster.local:9000"
+        - name: OBJECT_STORAGE_REGION
+          value: "us-east-1"
+        - name: OBJECT_STORAGE_BUCKET
+          value: "doris-data"
+        - name: OBJECT_STORAGE_ACCESS_KEY
+          value: "minioadmin"
+        - name: OBJECT_STORAGE_SECRET_KEY
+          value: "minioadmin"
+        - name: OBJECT_STORAGE_USE_HTTPS
+          value: "false"
+        - name: STORAGE_ROOT_PATH
+          value: "/mnt/disk1/doris_cloud_cache"
+        - name: CACHE_FILE_SIZE
+          value: "20"
+        - name: CACHE_TTL_SECONDS
+          value: "86400"
+        volumeMounts:
+        - name: cache
+          mountPath: /mnt/disk1/doris_cloud_cache
+        - name: be-log
+          mountPath: /opt/apache-doris/be/log
+      volumes:
+      - name: cache
+        emptyDir:
+          sizeLimit: 50Gi
+      - name: be-log
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doris-compute
+  namespace: doris
+spec:
+  clusterIP: None
+  selector:
+    app: doris
+    component: compute

@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: doris-fe
+  namespace: doris
+spec:
+  serviceName: doris-fe
+  replicas: 3
+  selector:
+    matchLabels:
+      app: doris
+      component: fe
+  template:
+    metadata:
+      labels:
+        app: doris
+        component: fe
+    spec:
+      containers:
+      - name: fe
+        image: apache/doris:2.1.0
+        ports:
+        - containerPort: 9030
+          name: query
+        - containerPort: 8030
+          name: http
+        - containerPort: 9010
+          name: thrift
+        env:
+        - name: FE_SERVERS
+          value: "doris-fe-0.doris-fe.doris.svc.cluster.local:9010,doris-fe-1.doris-fe.doris.svc.cluster.local:9010,doris-fe-2.doris-fe.doris.svc.cluster.local:9010"
+        - name: FE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PRIORITY_NETWORKS
+          value: "172.20.0.0/16"
+        volumeMounts:
+        - name: fe-meta
+          mountPath: /opt/apache-doris/fe/meta
+        - name: fe-log
+          mountPath: /opt/apache-doris/fe/log
+      volumes:
+      - name: fe-meta
+        emptyDir: {}
+      - name: fe-log
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doris-fe
+  namespace: doris
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9030
+    targetPort: 9030
+    name: query
+  - port: 8030
+    targetPort: 8030
+    name: http
+  selector:
+    app: doris
+    component: fe
