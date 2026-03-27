@@ -1,0 +1,39 @@
+# GKE Deployment中使用Secret Manager示例
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-webapp
+  labels:
+    app: my-webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-webapp
+  template:
+    metadata:
+      labels:
+        app: my-webapp
+    spec:
+      serviceAccountName: my-webapp-sa
+      containers:
+        - name: webapp
+          image: my-webapp:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret-provider
+                  key: db-password
+          volumeMounts:
+            - name: secrets
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.gke.io
+            volumeAttributes:
+              secretProviderClass: "my-secret-provider"

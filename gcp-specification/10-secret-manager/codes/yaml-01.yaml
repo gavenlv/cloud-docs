@@ -1,0 +1,13 @@
+# Kubernetes SecretProviderClass示例
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: my-secret-provider
+spec:
+  provider: gcp
+  parameters:
+    secrets: |
+      - resourceName: "projects/PROJECT_ID/secrets/my-secret/latest"
+        fileName: "my-secret"
+      - resourceName: "projects/PROJECT_ID/secrets/my-api-key/latest"
+        fileName: "api-key"

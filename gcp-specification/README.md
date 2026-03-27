@@ -36,11 +36,28 @@ gcp-specification/
 │   └── 01-architecture-best-practices.md
 ├── 07-storage/                           # 存储服务
 │   └── 01-storage-services.md
-└── 08-cost-optimization/                 # 成本优化
-    ├── 01-cost-optimization.md
+├── 08-cost-optimization/                 # 成本优化
+│   ├── 01-cost-optimization.md
+│   └── codes/
+│       ├── json-01.json
+│       └── python-01.py
+└── 09-alloydb/                            # AlloyDB数据库
+    ├── 01-alloydb-guide.md
     └── codes/
-        ├── json-01.json
+        └── alloydb-01.py
+└── 10-secret-manager/                     # Secret Manager
+    ├── 01-secret-manager-guide.md
+    └── codes/
+        ├── bash-01.sh
+        ├── yaml-01.yaml
+        ├── yaml-02.yaml
         └── python-01.py
+└── 11-memorystore/                        # Memorystore (Redis)
+    ├── 01-memorystore-guide.md
+    └── codes/
+        ├── bash-01.sh
+        ├── python-01.py
+        └── yaml-01.yaml
 ```
 
 ## 快速开始
@@ -129,6 +146,41 @@ cd 08-cost-optimization/codes
 python python-01.py
 ```
 
+### 09-alloydb - AlloyDB数据库
+
+**运行命令：**
+```bash
+cd 09-alloydb/codes
+python alloydb-01.py
+```
+
+### 10-secret-manager - Secret Manager
+
+**运行命令：**
+```bash
+cd 10-secret-manager/codes
+# 查看Secret Manager操作示例
+bash bash-01.sh
+# 查看Kubernetes SecretProviderClass配置
+cat yaml-01.yaml
+cat yaml-02.yaml
+# 运行Python示例
+python python-01.py
+```
+
+### 11-memorystore - Memorystore (Redis)
+
+**运行命令：**
+```bash
+cd 11-memorystore/codes
+# 查看Memorystore操作示例
+bash bash-01.sh
+# 查看GKE Deployment配置
+cat yaml-01.yaml
+# 运行Python Redis客户端示例
+python python-01.py
+```
+
 ## 代码提取统计
 
 | 章节 | 代码类型 | 数量 |
@@ -139,6 +191,9 @@ python python-01.py
 | 04-networking-security | python | 1 |
 | 05-devops | yaml | 1 |
 | 08-cost-optimization | json, python | 2 |
+| 09-alloydb | python | 1 |
+| 10-secret-manager | bash, yaml, python | 4 |
+| 11-memorystore | bash, yaml, python | 3 |
 
 ## 学习路径
 
@@ -159,6 +214,9 @@ python python-01.py
 2. [06-architecture](./06-architecture/) - 掌握架构设计
 3. [07-storage](./07-storage/) - 掌握存储服务
 4. [08-cost-optimization](./08-cost-optimization/) - 掌握成本优化
+5. [09-alloydb](./09-alloydb/) - 掌握AlloyDB数据库
+6. [10-secret-manager](./10-secret-manager/) - 掌握Secret Manager密钥管理
+7. [11-memorystore](./11-memorystore/) - 掌握Memorystore Redis缓存
 
 ## 前置要求
 

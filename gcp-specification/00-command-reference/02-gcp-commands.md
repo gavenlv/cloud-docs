@@ -1226,11 +1226,255 @@ gcloud iam service-accounts keys delete KEY_ID `
 
 ---
 
+# Secret Manager命令
+
+## 9.1 密钥操作
+
+### 9.1.1 获取密钥
+
+```bash
+# 列出所有密钥
+gcloud secrets list
+
+# 按项目筛选
+gcloud secrets list --project=PROJECT_ID
+
+# 查看密钥详情
+gcloud secrets describe my-secret
+
+# 获取密钥最新版本的值
+gcloud secrets versions describe latest --secret=my-secret
+
+# 列出密钥的所有版本
+gcloud secrets versions list my-secret
+```
+
+### 9.1.2 创建和删除密钥
+
+```bash
+# 从文件创建密钥
+gcloud secrets create my-secret --data-file=./secret.txt
+
+# 从标准输入创建密钥
+echo -n "my-secret-value" | gcloud secrets create my-secret --data-file=-
+
+# 从.env文件批量创建密钥
+gcloud secrets create api-key --data-file=./api-key.txt
+gcloud secrets create db-password --data-file=./db-password.txt
+
+# 删除密钥（会删除所有版本）
+gcloud secrets delete my-secret
+
+# 强制删除（跳过确认）
+gcloud secrets delete my-secret --quiet
+```
+
+### 9.1.3 密钥版本管理
+
+```bash
+# 添加新版本
+gcloud secrets versions add my-secret --data-file=./new-secret.txt
+
+# 禁用版本
+gcloud secrets versions disable 1 --secret=my-secret
+
+# 启用版本
+gcloud secrets versions enable 1 --secret=my-secret
+
+# 销毁版本
+gcloud secrets versions destroy 1 --secret=my-secret
+
+# 查看版本访问状态
+gcloud secrets versions describe 1 --secret=my-secret
+```
+
+---
+
+## 9.2 密钥访问和IAM
+
+### 9.2.1 访问密钥
+
+```bash
+# 获取密钥值（最新版本）
+gcloud secrets versions access latest --secret=my-secret
+
+# 获取特定版本的值
+gcloud secrets versions access 1 --secret=my-secret
+
+# 访问并保存到文件
+gcloud secrets versions access latest --secret=my-secret --out-file=./retrieved-secret.txt
+```
+
+### 9.2.2 密钥IAM策略
+
+```bash
+# 查看密钥IAM策略
+gcloud secrets get-iam-policy my-secret
+
+# 添加访问者
+gcloud secrets add-iam-policy-binding my-secret `
+    --member=user:email@example.com `
+    --role=roles/secretmanager.secretAccessor
+
+# 添加服务账号访问权限
+gcloud secrets add-iam-policy-binding my-secret `
+    --member=serviceAccount:sa@PROJECT_ID.iam.gserviceaccount.com `
+    --role=roles/secretmanager.secretAccessor
+
+# 移除访问权限
+gcloud secrets remove-iam-policy-binding my-secret `
+    --member=user:email@example.com `
+    --role=roles/secretmanager.secretAccessor
+```
+
+---
+
+## 9.3 密钥标签和 replication
+
+### 9.3.1 标签管理
+
+```bash
+# 创建带标签的密钥
+gcloud secrets create my-secret --data-file=./secret.txt --labels=env=prod,team=backend
+
+# 更新标签
+gcloud secrets update my-secret --update-labels=env=staging
+
+# 移除标签
+gcloud secrets update my-secret --remove-labels=team
+```
+
+### 9.3.2 replication配置
+
+```bash
+# 创建自动 replication 的密钥（默认）
+gcloud secrets create my-secret --data-file=./secret.txt --replication-policy=automatic
+
+# 创建手动 replication 的密钥
+gcloud secrets create my-secret --data-file=./secret.txt --replication-policy=manual
+
+# 创建指定区域的密钥
+gcloud secrets create my-secret --data-file=./secret.txt `
+    --locations=us-central1 `
+    --replication-policy=manual
+
+# 创建多区域密钥
+gcloud secrets create my-secret --data-file=./secret.txt `
+    --locations=us-central1,europe-west1,asia-east1 `
+    --replication-policy=manual
+```
+
+---
+
+# Memorystore (Redis)命令
+
+## 10.1 实例操作
+
+### 10.1.1 获取实例
+
+```bash
+# 列出所有Redis实例
+gcloud redis instances list
+
+# 按项目筛选
+gcloud redis instances list --project=PROJECT_ID
+
+# 查看实例详情
+gcloud redis instances describe my-redis --region=us-central1
+
+# 获取实例IP和端口
+gcloud redis instances describe my-redis --region=us-central1 --format="value(host,port)"
+
+# 获取实例状态
+gcloud redis instances describe my-redis --region=us-central1 --format="value(status)"
+```
+
+### 10.1.2 创建实例
+
+```bash
+# 创建基础层Redis实例
+gcloud redis instances create my-redis `
+    --size=1 `
+    --region=us-central1 `
+    --redis-version=redis_7_0
+
+# 创建标准层Redis实例(带高可用)
+gcloud redis instances create my-redis-standard `
+    --size=2 `
+    --region=us-central1 `
+    --tier=STANDARD `
+    --redis-version=redis_7_0 `
+    --network=projects/PROJECT_ID/global/networks/my-vpc
+
+# 创建带AUTH和TLS的Redis实例
+gcloud redis instances create my-redis-secure `
+    --size=1 `
+    --region=us-central1 `
+    --tier=STANDARD `
+    --redis-version=redis_7_0 `
+    --network=projects/PROJECT_ID/global/networks/my-vpc `
+    --enable-auth `
+    --transit-encryption-mode=SERVER_AUTHENTICATION
+
+# 创建带自定义配置的Redis实例
+gcloud redis instances create my-redis-config `
+    --size=1 `
+    --region=us-central1 `
+    --redis-version=redis_7_0 `
+    --redis-config=maxmemory-policy=allkeys-lru,timeout=300
+```
+
+### 10.1.3 更新和删除实例
+
+```bash
+# 修改实例大小
+gcloud redis instances update my-redis --region=us-central1 --size=3
+
+# 修改实例层级
+gcloud redis instances update my-redis --region=us-central1 --tier=STANDARD
+
+# 更新Redis配置
+gcloud redis instances update my-redis --region=us-central1 --redis-config=maxmemory-policy=allkeys-lru
+
+# 启用AUTH
+gcloud redis instances update my-redis --region=us-central1 --enable-auth
+
+# 启用TLS
+gcloud redis instances update my-redis --region=us-central1 --transit-encryption-mode=SERVER_AUTHENTICATION
+
+# 删除实例
+gcloud redis instances delete my-redis --region=us-central1
+
+# 强制删除
+gcloud redis instances delete my-redis --region=us-central1 --quiet
+```
+
+### 10.1.4 高可用操作
+
+```bash
+# 触发手动故障转移(标准层)
+gcloud redis instances failover my-redis-standard --region=us-central1
+
+# 测试连接
+gcloud redis instances test-connection my-redis --region=us-central1
+
+# 创建手动备份
+gcloud redis instances export my-redis --region=us-central1 --output-directory=gs://my-bucket/backups/
+
+# 查看备份列表
+gcloud redis instances backups list my-redis --region=us-central1
+
+# 设置维护窗口
+gcloud redis instances update my-redis --region=us-central1 --maintenance-window-day=sunday --maintenance-window-start-time=03:00
+```
+
+---
+
 # 调试和排错
 
-## 10.1 日志查看
+## 11.1 日志查看
 
-### 10.1.1 gcloud日志命令
+### 11.1.1 gcloud日志命令
 
 ```bash
 # 查看项目日志
@@ -1249,7 +1493,7 @@ gcloud logging read "resource.type=gce_instance AND resource.labels.instance_id=
 gcloud logging read "resource.type=gce_instance" --follow --limit=10
 ```
 
-### 10.1.2 实例日志
+### 11.1.2 实例日志
 
 ```bash
 # 查看实例串口输出
@@ -1264,9 +1508,9 @@ gcloud builds log BUILD_ID
 
 ---
 
-## 10.2 诊断命令
+## 11.2 诊断命令
 
-### 10.2.1 网络诊断
+### 11.2.1 网络诊断
 
 ```bash
 # 测试连通性
@@ -1282,7 +1526,7 @@ gcloud compute instances describe instance-name --zone=us-central1-a --format="y
 gcloud compute networks peerings list --network=my-vpc
 ```
 
-### 10.2.2 资源诊断
+### 11.2.2 资源诊断
 
 ```bash
 # 查看配额使用
@@ -1300,9 +1544,9 @@ gcloud iam service-accounts get-iam-policy sa@PROJECT_ID.iam.gserviceaccount.com
 
 ---
 
-## 10.3 操作验证
+## 11.3 操作验证
 
-### 10.3.1 Dry-run和Async
+### 11.3.1 Dry-run和Async
 
 ```bash
 # 试运行（不实际执行）
@@ -1322,7 +1566,7 @@ gcloud operations describe OPERATION_ID --zone=us-central1-a
 
 # 高级命令
 
-## 11.1 批量操作
+## 12.1 批量操作
 
 ```bash
 # 批量创建实例
@@ -1339,7 +1583,7 @@ for i in {1..10}; do
 done
 ```
 
-## 11.2 导出导入配置
+## 12.2 导出导入配置
 
 ```bash
 # 导出实例配置
@@ -1352,7 +1596,7 @@ gcloud compute instances import my-instance --zone=us-central1-a --source=instan
 gcloud container clusters describe my-cluster --zone=us-central1-a --format=yaml > cluster.yaml
 ```
 
-## 11.3 过滤器组合
+## 12.3 过滤器组合
 
 ```bash
 # 组合过滤条件
@@ -1381,4 +1625,6 @@ gcloud logging read "timestamp>=2024-01-01T00:00:00Z AND timestamp<2024-01-02T00
 - BigQuery使用 `bq` 命令进行数据查询和表管理
 - Cloud SQL提供关系数据库生命周期管理
 - IAM命令支持服务账号和权限的完整管理
+- Secret Manager命令支持密钥的创建、版本管理和IAM访问控制
+- Memorystore命令支持Redis实例的创建、高可用配置和故障转移
 - 日志和诊断命令帮助快速定位问题
