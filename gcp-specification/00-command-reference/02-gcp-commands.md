@@ -887,6 +887,8 @@ bq rm -r my_dataset
 bq rm my_dataset
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 6.2 表操作
@@ -1547,6 +1549,8 @@ gcloud redis instances backups list my-redis --region=us-central1
 gcloud redis instances update my-redis --region=us-central1 --maintenance-window-day=sunday --maintenance-window-start-time=03:00
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 # 调试和排错
@@ -1585,6 +1589,8 @@ gcloud run services logs read my-service --region=us-central1
 gcloud builds log BUILD_ID
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 11.2 诊断命令
@@ -1621,6 +1627,8 @@ gcloud services list --enabled
 gcloud iam service-accounts get-iam-policy sa@PROJECT_ID.iam.gserviceaccount.com
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 11.3 操作验证
@@ -1640,6 +1648,8 @@ gcloud operations list --limit=10
 # 查看特定操作
 gcloud operations describe OPERATION_ID --zone=us-central1-a
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -1661,6 +1671,8 @@ for i in {1..10}; do
     gcloud compute instances delete instance-$i --zone=us-central1-a --quiet
 done
 ```
+
+[← 返回目录](#命令目录)
 
 ## 12.2 导出导入配置
 
@@ -1690,6 +1702,8 @@ gcloud compute instances list --filter="labels.env=prod"
 # 时间范围筛选
 gcloud logging read "timestamp>=2024-01-01T00:00:00Z AND timestamp<2024-01-02T00:00:00Z" --limit=10
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
