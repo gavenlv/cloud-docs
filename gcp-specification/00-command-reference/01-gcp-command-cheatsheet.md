@@ -12,23 +12,30 @@
 2. [Compute Engine](#2-compute-engine)
 3. [GKE (Kubernetes)](#3-gke-kubernetes)
 4. [Cloud Run](#4-cloud-run)
-5. [Cloud Storage](#5-cloud-storage)
-6. [BigQuery](#6-bigquery)
+5. [Cloud Storage (gsutil)](#5-cloud-storage-gsutil)
+6. [BigQuery (bq)](#6-bigquery-bq)
 7. [Cloud SQL](#7-cloud-sql)
-8. [Firestore](#8-firestore)
-9. [VPC网络](#9-vpc网络)
-10. [IAM和权限](#10-iam和权限)
-11. [Secret Manager](#11-secret-manager)
-12. [Pub/Sub](#12-pubsub)
-13. [Cloud Functions](#13-cloud-functions)
-14. [Cloud Build](#14-cloud-build)
-15. [Cloud Deploy](#15-cloud-deploy)
-16. [Artifact Registry](#16-artifact-registry)
-17. [常用操作](#17-常用操作)
+8. [AlloyDB](#8-alloydb)
+9. [Memorystore Redis](#9-memorystore-redis)
+10. [VPC网络](#10-vpc网络)
+11. [Cloud DNS](#11-cloud-dns)
+12. [负载均衡](#12-负载均衡)
+13. [Cloud CDN](#13-cloud-cdn)
+14. [IAM和权限](#14-iam和权限)
+15. [Secret Manager](#15-secret-manager)
+16. [Pub/Sub](#16-pubsub)
+17. [Cloud Functions](#17-cloud-functions)
+18. [Cloud Build](#18-cloud-build)
+19. [Cloud Deploy](#19-cloud-deploy)
+20. [Artifact Registry](#20-artifact-registry)
+21. [Network Security](#21-network-security)
+22. [常用操作](#22-常用操作)
 
 ---
 
 ## 1. 基础配置命令
+
+[← 返回目录](#目录)
 
 ```powershell
 # ============================================================
@@ -77,6 +84,8 @@ gcloud components install COMPONENT_ID
 # 更新gcloud
 gcloud components update
 ```
+
+[← 返回目录](#目录)
 
 ---
 
@@ -182,6 +191,8 @@ gcloud compute instance-groups managed create my-instance-group `
     --size=3
 ```
 
+[← 返回目录](#目录)
+
 ---
 
 ## 3. GKE (Kubernetes)
@@ -262,6 +273,8 @@ kubectl exec -it pod-name -- /bin/bash
 kubectl delete -f deployment.yaml
 ```
 
+[← 返回目录](#目录)
+
 ---
 
 ## 4. Cloud Run
@@ -319,6 +332,8 @@ gcloud run services update-traffic my-service `
     --region us-central1 `
     --to-revisions=my-service-00001-abc=100
 ```
+
+[← 返回目录](#目录)
 
 ---
 
@@ -387,6 +402,8 @@ gsutil ls -a gs://my-bucket-name/
 gsutil signurl -d 1h key.json gs://my-bucket-name/file.txt
 ```
 
+[← 返回目录](#目录)
+
 ---
 
 ## 6. BigQuery
@@ -449,6 +466,8 @@ bq load my_dataset.my_table gs://bucket/data.csv schema.json
 # 从JSON加载
 bq load --source_format=NEWLINE_DELIMITED_JSON my_dataset.my_table gs://bucket/data.json schema.json
 ```
+
+[← 返回目录](#目录)
 
 ---
 
@@ -532,51 +551,138 @@ gcloud sql instances create my-replica `
     --region=us-east1
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 8. Firestore
+## 8. AlloyDB
 
 ```powershell
 # ============================================================
-# Firestore (NoSQL数据库)
+# AlloyDB (企业级PostgreSQL兼容数据库)
 # ============================================================
 
-# ---------- 集合操作 ----------
+# ---------- 实例操作 ----------
 
-# 列出集合（使用gcloud）
-gcloud firestore databases list
+# 创建AlloyDB集群
+gcloud alloydb instances create my-alloydb `
+    --cluster=my-cluster `
+    --region=us-central1 `
+    --node-count=3 `
+    --database-version=POSTGRES_15
 
-# 创建集合（通过写入文档自动创建）
-# 使用控制台或SDK创建
+# 列出AlloyDB集群
+gcloud alloydb clusters list
 
-# ---------- 文档操作 ----------
+# 查看集群详情
+gcloud alloydb clusters describe my-cluster --region=us-central1
 
-# 导出数据
-gcloud firestore export gs://bucket/name
+# 删除集群
+gcloud alloydb clusters delete my-cluster --region=us-central1
 
-# 导入数据
-gcloud firestore import gs://bucket/name
+# ---------- 备份操作 ----------
 
-# ---------- SDK操作（Python示例）----------
+# 创建备份
+gcloud alloydb backups create my-backup `
+    --cluster=my-cluster `
+    --region=us-central1
 
-# pip install google-cloud-firestore
-# from google.cloud import firestore
-# db = firestore.Client()
-# 
-# # 创建文档
-# db.collection('users').document('user1').set({'name': 'Alice', 'age': 30})
-# 
-# # 读取文档
-# doc = db.collection('users').document('user1').get()
-# print(doc.to_dict())
-# 
-# # 查询
-# users = db.collection('users').where('age', '>', 25).stream()
+# 列出备份
+gcloud alloydb backups list --cluster=my-cluster --region=us-central1
+
+# 从备份恢复
+gcloud alloydb instances restore my-cluster `
+    --backup=my-backup `
+    --region=us-central1
+
+# ---------- 连接操作 ----------
+
+# 获取连接字符串
+gcloud alloydb instances describe my-instance --region=us-central1 `
+    --format="value(ipAddresses[0])"
+
+# 测试连接
+gcloud alloydb instances test-connection my-instance --region=us-central1
 ```
+
+[← 返回目录](#目录)
 
 ---
 
-## 9. VPC网络
+## 9. Memorystore Redis
+
+```powershell
+# ============================================================
+# Memorystore (Redis内存数据库)
+# ============================================================
+
+# ---------- 实例操作 ----------
+
+# 创建基础层Redis
+gcloud redis instances create my-redis `
+    --size=1 `
+    --region=us-central1 `
+    --redis-version=redis_7_0
+
+# 创建标准层Redis(高可用)
+gcloud redis instances create my-redis-ha `
+    --size=2 `
+    --region=us-central1 `
+    --tier=STANDARD `
+    --redis-version=redis_7_0 `
+    --network=projects/PROJECT_ID/global/networks/my-vpc
+
+# 列出Redis实例
+gcloud redis instances list
+
+# 查看实例详情
+gcloud redis instances describe my-redis --region=us-central1
+
+# 获取主机和端口
+gcloud redis instances describe my-redis --region=us-central1 `
+    --format="value(host,port)"
+
+# ---------- 更新操作 ----------
+
+# 修改实例大小
+gcloud redis instances update my-redis --region=us-central1 --size=3
+
+# 启用AUTH
+gcloud redis instances update my-redis --region=us-central1 --enable-auth
+
+# 启用TLS
+gcloud redis instances update my-redis --region=us-central1 `
+    --transit-encryption-mode=SERVER_AUTHENTICATION
+
+# ---------- 高可用操作 ----------
+
+# 触发故障转移
+gcloud redis instances failover my-redis-ha --region=us-central1
+
+# 测试连接
+gcloud redis instances test-connection my-redis --region=us-central1
+
+# ---------- 备份操作 ----------
+
+# 导出数据
+gcloud redis instances export my-redis --region=us-central1 `
+    --output-directory=gs://my-bucket/backups/
+
+# 导入数据
+gcloud redis instances import my-redis --region=us-central1 `
+    --source=gs://my-bucket/backups/my-redis.rdb
+
+# ---------- 删除操作 ----------
+
+# 删除实例
+gcloud redis instances delete my-redis --region=us-central1
+```
+
+[← 返回目录](#目录)
+
+---
+
+## 10. VPC网络
 
 ```powershell
 # ============================================================
@@ -664,9 +770,261 @@ gcloud compute target-https-proxies create my-proxy `
     --ssl-certificates=my-cert
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 10. IAM和权限
+## 11. Cloud DNS
+
+```powershell
+# ============================================================
+# Cloud DNS (托管DNS服务)
+# ============================================================
+
+# ---------- 托管区域操作 ----------
+
+# 创建托管区域
+gcloud dns managed-zones create my-zone `
+    --dns-name="example.com." `
+    --description="My DNS zone"
+
+# 列出托管区域
+gcloud dns managed-zones list
+
+# 查看区域详情
+gcloud dns managed-zones describe my-zone
+
+# 删除托管区域
+gcloud dns managed-zones delete my-zone
+
+# ---------- DNS记录操作 ----------
+
+# 添加A记录
+gcloud dns record-sets create www.example.com. `
+    --zone=my-zone `
+    --type=A `
+    --ttl=300 `
+    --rrdatas=123.456.789.001
+
+# 添加CNAME记录
+gcloud dns record-sets create blog.example.com. `
+    --zone=my-zone `
+    --type=CNAME `
+    --ttl=300 `
+    --rrdatas=www.example.com.
+
+# 添加MX记录
+gcloud dns record-sets create example.com. `
+    --zone=my-zone `
+    --type=MX `
+    --ttl=300 `
+    --rrdatas="10 mail.example.com."
+
+# 列出记录
+gcloud dns record-sets list --zone=my-zone
+
+# 删除记录
+gcloud dns record-sets delete www.example.com. --zone=my-zone --type=A
+
+# ---------- 导入导出 ----------
+
+# 导出区域记录到文件
+gcloud dns record-sets export my-zone --zone=my-zone --output-file=dns_records.yaml
+
+# 从文件导入记录
+gcloud dns record-sets import my-zone --zone=my-zone --input-file=dns_records.yaml
+
+# ---------- 变更操作 ----------
+
+# 查看变更记录
+gcloud dns changes list --zone=my-zone
+
+# 查看变更详情
+gcloud dns changes describe CHANGE_ID --zone=my-zone
+```
+
+[← 返回目录](#目录)
+
+---
+
+## 12. 负载均衡
+
+```powershell
+# ============================================================
+# 负载均衡 (Cloud Load Balancing)
+# ============================================================
+
+# ---------- HTTP(S)负载均衡 ----------
+
+# 创建健康检查
+gcloud compute health-checks create http my-http-health-check `
+    --port=80 `
+    --request-path=/health
+
+# 创建后端服务
+gcloud compute backend-services create my-backend-service `
+    --protocol=HTTP `
+    --health-checks=my-http-health-check `
+    --global
+
+# 添加后端(实例组)
+gcloud compute backend-services add-backend my-backend-service `
+    --instance-group=my-instance-group `
+    --instance-group-zone=us-central1-a `
+    --global
+
+# 创建URL映射
+gcloud compute url-maps create my-url-map `
+    --default-service=my-backend-service
+
+# 创建目标HTTP代理
+gcloud compute target-http-proxies create my-http-proxy `
+    --url-map=my-url-map
+
+# 创建HTTP转发规则
+gcloud compute forwarding-rules create my-http-forwarding-rule `
+    --address=my-ip `
+    --target-http-proxy=my-http-proxy `
+    --ports=80 `
+    --global
+
+# ---------- HTTPS负载均衡 ----------
+
+# 创建SSL证书
+gcloud compute ssl-certificates create my-cert `
+    --certificate=cert.pem `
+    --private-key=key.pem
+
+# 创建HTTPS后端服务
+gcloud compute backend-services create my-https-backend `
+    --protocol=HTTPS `
+    --health-checks=my-http-health-check `
+    --global
+
+# 创建目标HTTPS代理
+gcloud compute target-https-proxies create my-https-proxy `
+    --url-map=my-url-map `
+    --ssl-certificates=my-cert
+
+# 创建HTTPS转发规则
+gcloud compute forwarding-rules create my-https-forwarding-rule `
+    --address=my-ip `
+    --target-https-proxy=my-https-proxy `
+    --ports=443 `
+    --global
+
+# ---------- 网络负载均衡(TCP/UDP) ----------
+
+# 创建健康检查
+gcloud compute health-checks create tcp my-tcp-health-check --port=8080
+
+# 创建后端服务
+gcloud compute backend-services create my-tcp-backend `
+    --health-checks=my-tcp-health-check `
+    --region=us-central1
+
+# 添加实例到后端
+gcloud compute backend-services add-backend my-tcp-backend `
+    --instance-group=my-instance-group `
+    --instance-group-zone=us-central1-a `
+    --region=us-central1
+
+# 创建转发规则(TCP)
+gcloud compute forwarding-rules create my-tcp-rule `
+    --backend-service=my-tcp-backend `
+    --address=my-ip `
+    --ports=8080 `
+    --region=us-central1
+
+# ---------- SSL策略 ----------
+
+# 创建SSL策略
+gcloud compute ssl-policies create my-ssl-policy `
+    --profile=MODERN `
+    --min-tls-version=TLS_1_2
+
+# 应用SSL策略到代理
+gcloud compute target-https-proxies update my-https-proxy `
+    --ssl-policy=my-ssl-policy
+```
+
+[← 返回目录](#目录)
+
+---
+
+## 13. Cloud CDN
+
+```powershell
+# ============================================================
+# Cloud CDN (内容分发网络)
+# ============================================================
+
+# ---------- 后端服务CDN ----------
+
+# 创建带CDN的后端桶
+gcloud compute backend-buckets create my-cdn-bucket `
+    --gcs-bucket-name=my-bucket `
+    --enable-cdn
+
+# 为后端服务启用CDN
+gcloud compute backend-services update my-backend-service `
+    --enable-cdn `
+    --global
+
+# 设置缓存键策略
+gcloud compute backend-services update my-backend-service `
+    --cache-mode=CACHE_ALL_STATIC `
+    --global
+
+# ---------- 缓存模式 ----------
+
+# CACHE_ALL_STATIC - 缓存所有静态内容
+gcloud compute backend-services update my-backend-service `
+    --cache-mode=CACHE_ALL_STATIC `
+    --global
+
+# FORCE_CACHE_ALL - 忽略Cache-Control no-store
+gcloud compute backend-services update my-backend-service `
+    --cache-mode=FORCE_CACHE_ALL `
+    --global
+
+# ORIGIN_HEADERS - 仅缓存有Cache-Control的响应
+gcloud compute backend-services update my-backend-service `
+    --cache-mode=ORIGIN_HEADERS `
+    --global
+
+# ---------- 缓存清除 ----------
+
+# 清除CDN缓存
+gcloud compute url-maps invalidate-cdn-cache my-url-map `
+    --path "/images/*" `
+    --global
+
+# 查看缓存命中统计
+gcloud compute backend-services describe my-backend-service --global `
+    --format="value(cdnPolicy)"
+
+# ---------- CDN配置 ----------
+
+# 设置客户端TTL
+gcloud compute backend-services update my-backend-service `
+    --cache-mode=CACHE_ALL_STATIC `
+    --client-ttl=3600 `
+    --max-ttl=86400 `
+    --global
+
+# 启用请求合并
+gcloud compute backend-services update my-backend-service `
+    --enable-cache-key-include-host `
+    --enable-cache-key-prefix-host `
+    --global
+```
+
+[← 返回目录](#目录)
+
+---
+
+## 14. IAM和权限
 
 ```powershell
 # ============================================================
@@ -735,9 +1093,11 @@ gcloud iam roles update custom.role `
     --add-permissions=compute.instances.create
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 11. Secret Manager
+## 15. Secret Manager
 
 ```powershell
 # ============================================================
@@ -795,9 +1155,11 @@ gcloud secrets add-iam-policy-binding my-secret `
 gcloud secrets get-iam-policy my-secret
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 12. Pub/Sub
+## 16. Pub/Sub
 
 ```powershell
 # ============================================================
@@ -852,9 +1214,11 @@ gcloud pubsub subscriptions update my-sub --message-retention-duration=604800
 gcloud pubsub subscriptions update my-sub --dead-letter-topic=my-dlq-topic
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 13. Cloud Functions
+## 17. Cloud Functions
 
 ```powershell
 # ============================================================
@@ -901,9 +1265,11 @@ gcloud functions describe my-function --region us-central1 --format="value(https
 gcloud functions delete my-function --region us-central1
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 14. Cloud Build
+## 18. Cloud Build
 
 ```powershell
 # ============================================================
@@ -949,7 +1315,7 @@ gcloud builds triggers delete TRIGGER_NAME
 
 ---
 
-## 15. Cloud Deploy
+## 19. Cloud Deploy
 
 ```powershell
 # ============================================================
@@ -986,9 +1352,11 @@ gcloud deploy rollouts list `
     --delivery-pipeline=my-pipeline
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 16. Artifact Registry
+## 20. Artifact Registry
 
 ```powershell
 # ============================================================
@@ -1035,9 +1403,90 @@ gcloud artifacts docker images list us-central1-docker.pkg.dev/PROJECT_ID/my-rep
 gcloud artifacts versions delete VERSION --package=my-image --repository=my-repo --location=us-central1
 ```
 
+[← 返回目录](#目录)
+
 ---
 
-## 17. 常用操作
+## 21. Network Security
+
+```powershell
+# ============================================================
+# Network Security (网络安全)
+# ============================================================
+
+# ---------- Cloud Armor (DDoS防护和WAF) ----------
+
+# 创建安全策略
+gcloud compute security-policies create my-security-policy `
+    --description="My security policy"
+
+# 创建规则(阻止IP)
+gcloud compute security-policies rules create 1000 `
+    --security-policy=my-security-policy `
+    --src-ip-ranges="192.168.1.0/24" `
+    --action=deny-403
+
+# 创建规则(速率限制)
+gcloud compute security-policies rules create 2000 `
+    --security-policy=my-security-policy `
+    --expression="true" `
+    --action=rate-based-ban `
+    --rate-limit-threshold-count=100 `
+    --rate-limit-threshold-interval-sec=60
+
+# 附加策略到后端服务
+gcloud compute backend-services update my-backend-service `
+    --security-policy=my-security-policy `
+    --global
+
+# ---------- 防火墙策略 ----------
+
+# 创建防火墙策略
+gcloud compute firewall-policies create my-firewall-policy `
+    --description="My firewall policy"
+
+# 创建防火墙规则
+gcloud compute firewall-policies rules create 1000 `
+    --firewall-policy=my-firewall-policy `
+    --src-ip-ranges="10.0.0.0/8" `
+    --allow=tcp:22,tcp:3389
+
+# 关联防火墙策略到VPC
+gcloud compute networks attach-firewall-policy my-vpc `
+    --firewall-policy=my-firewall-policy
+
+# ---------- Private Service Connect ----------
+
+# 创建服务端点(用于发布服务)
+gcloud compute service-attachments create my-attachment `
+    --region=us-central1 `
+    --producer-forwarding-rule=my-forwarding-rule `
+    --connection-limit=100
+
+# 创建客户端端点
+gcloud compute forwarding-rules create my-endpoint `
+    --region=us-central1 `
+    --network=my-vpc `
+    --target-service-attachment=my-attachment
+
+# ---------- VPC Service Controls ----------
+
+# 创建安全边界
+gcloud access-context-manager perimeters create my-perimeter `
+    --title="My Perimeter" `
+    --resources="projects/PROJECT_ID"
+
+# 添加访问级别
+gcloud access-context-manager levels create my-level `
+    --title="My Level" `
+    --expression="resource.name == 'projects/PROJECT_ID/zones/us-central1-a/instances/my-instance'"
+```
+
+[← 返回目录](#目录)
+
+---
+
+## 22. 常用操作
 
 ```powershell
 # ============================================================

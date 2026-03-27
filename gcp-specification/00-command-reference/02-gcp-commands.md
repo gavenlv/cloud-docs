@@ -18,6 +18,49 @@
 
 ---
 
+# 命令目录
+
+## 按服务类别索引
+
+| 服务类别 | 命令章节 |
+|---------|---------|
+| **gcloud基础** | [1.1 命令结构](#11-gcloud命令结构) / [1.2 输出格式](#12-输出格式) |
+| **计算服务** | |
+| &nbsp;&nbsp;&nbsp;• Compute Engine | [2.1 实例操作](#21-实例操作) / [2.2 磁盘操作](#22-磁盘操作) |
+| &nbsp;&nbsp;&nbsp;• GKE | [3.1 集群操作](#31-集群操作) |
+| &nbsp;&nbsp;&nbsp;• Cloud Run | [4.1 服务操作](#41-服务操作) |
+| **数据服务** | |
+| &nbsp;&nbsp;&nbsp;• Cloud Storage | [5.1 存储桶操作](#51-存储桶操作) / [5.2 对象操作](#52-对象操作) |
+| &nbsp;&nbsp;&nbsp;• BigQuery | [6.1 数据集操作](#61-数据集操作) / [6.2 表操作](#62-表操作) / [6.3 查询操作](#63-查询操作) |
+| &nbsp;&nbsp;&nbsp;• Cloud SQL | [7.1 实例操作](#71-实例操作) / [7.2 数据库和用户操作](#72-数据库和用户操作) |
+| &nbsp;&nbsp;&nbsp;• AlloyDB | [6.5 AlloyDB操作](#65-alloydb操作) |
+| &nbsp;&nbsp;&nbsp;• Memorystore | [10.1 Redis实例](#101-redis实例操作) |
+| **网络服务** | |
+| &nbsp;&nbsp;&nbsp;• VPC Network | [8.1 VPC操作](#81-vpc操作) / [8.2 防火墙和路由](#82-防火墙和路由) |
+| **安全服务** | |
+| &nbsp;&nbsp;&nbsp;• IAM | [9.1 策略操作](#91-策略操作) / [9.2 服务账号操作](#92-服务账号操作) |
+| &nbsp;&nbsp;&nbsp;• Secret Manager | [9.3 密钥操作](#93-密钥操作) / [9.4 密钥访问和IAM](#94-密钥访问和iam) |
+| **开发者工具** | |
+| &nbsp;&nbsp;&nbsp;• Cloud Functions | [10.1 函数部署](#101-函数部署) |
+| **调试和排错** | [11.1 日志查看](#111-日志查看) / [11.2 诊断命令](#112-诊断命令) / [11.3 操作验证](#113-操作验证) |
+| **高级命令** | [12.1 批量操作](#121-批量操作) / [12.2 导出导入配置](#122-导出导入配置) / [12.3 过滤器组合](#123-过滤器组合) |
+
+## 常用命令速查表
+
+| 操作 | 命令 |
+|-----|------|
+| 列出资源 | `gcloud <service> list` |
+| 查看详情 | `gcloud <service> describe <name>` |
+| 创建资源 | `gcloud <service> create <name>` |
+| 更新资源 | `gcloud <service> update <name>` |
+| 删除资源 | `gcloud <service> delete <name>` |
+| 启用API | `gcloud services enable <api>` |
+| 查看配置 | `gcloud config list` |
+| 设置项目 | `gcloud config set project <project>` |
+| 认证登录 | `gcloud auth login` |
+
+---
+
 # gcloud CLI基础
 
 ## 1.1 gcloud命令结构
@@ -120,6 +163,8 @@ gcloud compute --help
 gcloud compute instances --help
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 1.2 输出格式
@@ -180,6 +225,8 @@ gcloud sql instances describe instance-1 --format="value(connectionName)"
 # 无标题简洁格式
 --format="list"
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -349,6 +396,8 @@ gcloud compute instances get-serial-port-output my-instance --zone=us-central1-a
 gcloud compute instances reset-windows-password my-instance --zone=us-central1-a
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 2.2 磁盘操作
@@ -444,6 +493,8 @@ gcloud compute instance-groups managed resize my-group --zone=us-central1-a --si
 # 删除模板
 gcloud compute instance-templates delete my-template
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -564,6 +615,8 @@ gcloud container node-pools create gpu-nodepool `
 gcloud container node-pools delete my-nodepool --cluster=my-cluster --zone=us-central1-a
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 # Cloud Run命令
@@ -663,6 +716,8 @@ gcloud run services update-traffic my-service `
 gcloud run services delete my-service --region us-central1
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 # Cloud Storage命令
@@ -726,6 +781,8 @@ gsutil versioning set on gs://my-bucket
 gsutil iam ch allUsers:objectViewer gs://my-bucket
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 5.2 对象操作
@@ -786,6 +843,8 @@ gsutil signurl -d 1h key.json gs://my-bucket/file.txt
 # 生成带自定义方法的签名URL
 gsutil signurl -d 1h -m GET key.json gs://my-bucket/file.txt
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -870,6 +929,8 @@ bq mk --table --clustering_fields=field1,field2 my_dataset.my_table schema.json
 bq rm my_dataset.my_table
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 6.3 查询操作
@@ -905,6 +966,8 @@ bq query --dry_run "SELECT COUNT(*) FROM my_dataset.my_table"
 # 查看查询计划
 bq query --explain=compute "SELECT * FROM my_dataset.my_table"
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -1024,6 +1087,8 @@ gcloud sql users set-password user_name --instance=my-instance --password=NEW_PA
 gcloud sql users delete user_name --instance=my-instance
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 # VPC网络命令
@@ -1087,6 +1152,8 @@ gcloud compute networks peerings update my-peering `
     --import-custom-routes
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 8.2 防火墙和路由
@@ -1138,6 +1205,8 @@ gcloud compute routes create my-route `
 gcloud compute routes delete my-route
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 # IAM命令
@@ -1182,6 +1251,8 @@ gcloud storage buckets add-iam-policy-binding gs://my-bucket `
     --role=roles/storage.objectViewer
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 9.2 服务账号操作
@@ -1223,6 +1294,8 @@ gcloud iam service-accounts keys list `
 gcloud iam service-accounts keys delete KEY_ID `
     --iam-account=sa@PROJECT_ID.iam.gserviceaccount.com
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
@@ -1288,6 +1361,8 @@ gcloud secrets versions destroy 1 --secret=my-secret
 gcloud secrets versions describe 1 --secret=my-secret
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 9.2 密钥访问和IAM
@@ -1327,6 +1402,8 @@ gcloud secrets remove-iam-policy-binding my-secret `
     --role=roles/secretmanager.secretAccessor
 ```
 
+[← 返回目录](#命令目录)
+
 ---
 
 ## 9.3 密钥标签和 replication
@@ -1363,6 +1440,8 @@ gcloud secrets create my-secret --data-file=./secret.txt `
     --locations=us-central1,europe-west1,asia-east1 `
     --replication-policy=manual
 ```
+
+[← 返回目录](#命令目录)
 
 ---
 
