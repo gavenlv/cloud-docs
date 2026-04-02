@@ -42,7 +42,13 @@ gcp-specification/
 │       ├── json-01.json
 │       └── python-01.py
 └── 09-alloydb/                            # AlloyDB数据库
-    ├── 01-alloydb-guide.md
+    ├── 01-alloydb-guide.md                # AlloyDB核心指南
+    ├── 02-alloydb-scenarios.md            # 实战场景
+    ├── 03-migration-guide.md              # 迁移指南
+    ├── 04-integration-guide.md            # 服务集成
+    ├── 05-performance-tuning.md           # 性能调优
+    ├── 06-large-scale-optimization.md     # 大规模数据优化
+    ├── 07-extreme-scale-optimization.md   # 千亿级数据优化
     └── codes/
         └── alloydb-01.py
 └── 10-secret-manager/                     # Secret Manager
@@ -153,6 +159,15 @@ python python-01.py
 cd 09-alloydb/codes
 python alloydb-01.py
 ```
+
+**文档说明：**
+- `01-alloydb-guide.md` - 核心概念、架构、基础操作
+- `02-alloydb-scenarios.md` - 实战场景（电商、游戏、金融、实时分析）
+- `03-migration-guide.md` - 从PostgreSQL/Cloud SQL迁移指南
+- `04-integration-guide.md` - GKE、Cloud Functions、Cloud Run集成
+- `05-performance-tuning.md` - 性能调优最佳实践
+- `06-large-scale-optimization.md` - 列式存储原理、大规模数据写入/查询优化
+- `07-extreme-scale-optimization.md` - 千亿级数据分区、归档、分层存储
 
 ### 10-secret-manager - Secret Manager
 
