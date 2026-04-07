@@ -1,0 +1,21 @@
+apiVersion: postgresql.k8s.example.com/v1
+kind: PostgresCluster
+metadata:
+  name: test-postgres
+  namespace: default
+spec:
+  instances: 1
+  postgresqlVersion: "16"
+  database: testdb
+  storage:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  parameters:
+    max_connections: "50"
+    shared_buffers: "64MB"

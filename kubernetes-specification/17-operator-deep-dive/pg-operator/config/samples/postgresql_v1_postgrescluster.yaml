@@ -1,0 +1,53 @@
+apiVersion: postgresql.k8s.example.com/v1
+kind: PostgresCluster
+metadata:
+  name: my-postgres
+  namespace: default
+spec:
+  instances: 1
+  postgresqlVersion: "16"
+  database: myapp
+  storage:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  parameters:
+    max_connections: "100"
+    shared_buffers: "128MB"
+---
+apiVersion: postgresql.k8s.example.com/v1
+kind: PostgresCluster
+metadata:
+  name: prod-postgres
+  namespace: default
+spec:
+  instances: 3
+  postgresqlVersion: "16"
+  database: production
+  storage:
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  highAvailability:
+    enabled: true
+    failoverTimeout: 60
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 7
+  parameters:
+    max_connections: "200"
+    shared_buffers: "512MB"
+    effective_cache_size: "2GB"
+    wal_level: "replica"
+    max_wal_senders: "10"

@@ -1,0 +1,8 @@
+github.com/go-logr/logr v1.4.1 h1:K7Bg1SN9fM9m8MV2rx5JkFyo1cXX9sF2R5DqKQ+ZBw=
+github.com/go-logr/logr v1.4.1/go.mod h1:9T104GzyrTigFbB2QpLcJ7B5N9P2R6M7m7m7m7m7m7m=
+github.com/onsi/ginkgo/v2 v2.17.1 h1:V++EzdbhA4YTi8x5m9h9P9wqYkM7m7m7m7m7m7m7m7m=
+github.com/onsi/gomega v1.32.0 h1:JrUZQ9Qm7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m=
+k8s.io/api v0.30.0 h1:m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m=
+k8s.io/apimachinery v0.30.0 h1:m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m=
+k8s.io/client-go v0.30.0 h1:m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m=
+sigs.k8s.io/controller-runtime v0.18.2 h1:m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m7m=
