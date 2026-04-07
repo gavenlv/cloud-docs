@@ -1,0 +1,74 @@
+# PostgreSQL Operator - CR 示例
+
+# 单实例集群
+apiVersion: postgresql.v1
+kind: PostgresCluster
+metadata:
+  name: my-postgres
+  namespace: production
+spec:
+  instances: 1
+  postgresqlVersion: "16"
+  storage:
+    size: 50Gi
+    storageClass: standard-rwo
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  parameters:
+    max_connections: "200"
+    shared_buffers: "512MB"
+    effective_cache_size: "2GiB"
+
+---
+
+# 高可用集群（完整配置）
+apiVersion: postgresql.v1
+kind: PostgresCluster
+metadata:
+  name: prod-postgres-ha
+  namespace: production
+spec:
+  instances: 3
+  postgresqlVersion: "16"
+  storage:
+    size: 100Gi
+    storageClass: premium-rwo
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+  highAvailability:
+    enabled: true
+    failoverTimeout: 60
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 14
+    destination: "gs://my-bucket/backups/prod-postgres"
+  connectionPool:
+    enabled: true
+    minConnections: 10
+    maxClientConn: 200
+    mode: "transaction"
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+  parameters:
+    max_connections: "300"
+    shared_buffers: "1GB"
+    effective_cache_size: "4GB"
+    wal_level: "replica"
+    max_wal_senders: "15"
+    synchronous_commit: "on"
