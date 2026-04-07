@@ -1,0 +1,110 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: myapp-tls-cert
+  namespace: production
+spec:
+  secretName: myapp-tls-secret
+  duration: 2160h
+  renewBefore: 720h
+  issuerRef:
+    name: venafi-cloud-issuer
+    kind: ClusterIssuer
+  commonName: myapp.example.com
+  dnsNames:
+    - myapp.example.com
+    - www.myapp.example.com
+  usages:
+    - server auth
+    - client auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-example-com
+  namespace: production
+spec:
+  secretName: wildcard-example-com-tls
+  duration: 8760h
+  renewBefore: 2592h
+  issuerRef:
+    name: venafi-cloud-issuer
+    kind: ClusterIssuer
+  commonName: "*.example.com"
+  dnsNames:
+    - "*.example.com"
+    - example.com
+  usages:
+    - server auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp-ingress
+  namespace: production
+  annotations:
+    cert-manager.io/cluster-issuer: "venafi-cloud-issuer"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - myapp.example.com
+        - www.myapp.example.com
+      secretName: myapp-ingress-tls
+  rules:
+    - host: myapp.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: myapp-service
+                port:
+                  number: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: server-mtls-cert
+  namespace: production
+spec:
+  secretName: server-mtls-tls
+  duration: 2160h
+  renewBefore: 720h
+  issuerRef:
+    name: venafi-cloud-issuer
+    kind: ClusterIssuer
+  commonName: server.production.svc.cluster.local
+  dnsNames:
+    - server.production.svc.cluster.local
+  usages:
+    - server auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: client-mtls-cert
+  namespace: production
+spec:
+  secretName: client-mtls-tls
+  duration: 2160h
+  renewBefore: 720h
+  issuerRef:
+    name: venafi-cloud-issuer
+    kind: ClusterIssuer
+  commonName: client.production.svc.cluster.local
+  usages:
+    - client auth
+  privateKey:
+    algorithm: RSA
+    size: 2048

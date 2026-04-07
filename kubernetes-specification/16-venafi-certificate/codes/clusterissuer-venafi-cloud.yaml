@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: venafi-cloud-issuer
+spec:
+  venafi:
+    zone: "kubernetes-production"
+    api:
+      tokenRef:
+        key: api-key
+        name: venafi-api-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: venafi-api-secret
+  namespace: cert-manager
+type: Opaque
+stringData:
+  api-key: "YOUR_VENAFI_CLOUD_API_KEY"
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: venafi-tpp-issuer
+spec:
+  venafi:
+    zone: "Certificates\\Kubernetes\\Production"
+    tpp:
+      url: https://tpp.example.com
+      credentialsRef:
+        name: venafi-tpp-credentials
+        namespace: cert-manager
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: venafi-tpp-credentials
+  namespace: cert-manager
+type: Opaque
+stringData:
+  username: "your-username"
+  password: "your-password"
