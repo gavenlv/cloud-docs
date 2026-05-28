@@ -112,6 +112,22 @@ kubernetes-specification/
 │   ├── 14-kubectl-commands.md
 │   └── codes/
 │       └── ingress.yaml
+├── 15-gcp-secret-manager/                 # GCP Secret Manager集成
+│   ├── 15-gcp-secret-manager.md
+│   └── codes/
+│       ├── deployment-secrets-store.yaml
+│       ├── secret-provider-class.yaml
+│       └── service-account.yaml
+├── 16-gke-private-cluster/                # GKE私有集群
+│   ├── 16-gke-private-cluster.md
+│   └── codes/
+│       ├── cluster-private.yaml
+│       └── firewall-rules.yaml
+├── 17-operator-deep-dive/                 # Operator深入
+│   ├── 17-operator-deep-dive.md
+│   └── pg-operator/                       # PostgreSQL Operator示例
+├── 18-gke-cloud-service-mesh/             # GKE Cloud Service Mesh
+│   └── 01-gke-cloud-service-mesh.md
 ├── VERIFICATION.md                        # 代码验证说明
 ├── verify-kubectl-config.ps1              # kubectl配置验证脚本
 ├── verify-kubectl-config.sh
@@ -328,6 +344,10 @@ kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/
 2. [11-kubectl-config](./11-kubectl-config/) - 精通kubectl配置
 3. [12-operator](./12-operator/) - 开发Kubernetes Operator
 4. [13-extending-kubernetes](./13-extending-kubernetes/) - 扩展Kubernetes
+5. [15-gcp-secret-manager](./15-gcp-secret-manager/) - GCP Secret Manager集成
+6. [16-gke-private-cluster](./16-gke-private-cluster/) - GKE私有集群
+7. [17-operator-deep-dive](./17-operator-deep-dive/) - Operator深入实践
+8. [18-gke-cloud-service-mesh](./18-gke-cloud-service-mesh/) - GKE Cloud Service Mesh
 
 ## 前置要求
 

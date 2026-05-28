@@ -15,7 +15,9 @@ gcp-specification/
 │   └── codes/
 │       └── bash-01.sh ~ bash-51.sh
 ├── 01-fundamentals/                      # GCP基础
-│   └── 01-gcp-intro.md
+│   ├── 01-gcp-intro.md                   # GCP原理与架构
+│   ├── 02-gcp-setup.md                   # 环境设置指南
+│   └── 03-gcp-authentication.md          # GCP认证原理
 ├── 02-compute/                           # 计算服务
 │   ├── 01-compute-services.md
 │   └── codes/
@@ -216,6 +218,9 @@ python python-01.py
 
 1. [00-command-reference](./00-command-reference/) - 掌握GCP命令
 2. [01-fundamentals](./01-fundamentals/) - 掌握GCP基础
+   - [GCP原理与架构](./01-fundamentals/01-gcp-intro.md)
+   - [环境设置指南](./01-fundamentals/02-gcp-setup.md)
+   - [GCP认证原理](./01-fundamentals/03-gcp-authentication.md)
 
 ### 中级路径
 

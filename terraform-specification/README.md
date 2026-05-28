@@ -33,6 +33,7 @@ terraform-specification/
 │       └── hcl-01.hcl ~ hcl-07.hcl
 ├── 05-gcp-integration/                   # GCP集成
 │   ├── 05-gcp-integration.md
+│   ├── 06-gcp-authentication.md           # GCP认证配置
 │   └── codes/
 │       ├── bash-01.sh ~ bash-05.sh
 │       ├── hcl-01.hcl ~ hcl-15.hcl
@@ -188,6 +189,8 @@ terraform apply -var-file=production.tfvars
 1. [03-modular-design](./03-modular-design/) - 掌握模块化设计
 2. [04-workspaces-environments](./04-workspaces-environments/) - 掌握工作空间
 3. [05-gcp-integration](./05-gcp-integration/) - 掌握GCP集成
+   - [GCP集成指南](./05-gcp-integration/05-gcp-integration.md)
+   - [GCP认证配置](./05-gcp-integration/06-gcp-authentication.md)
 
 ### 高级路径
 
