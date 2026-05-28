@@ -263,6 +263,32 @@
 - API网关统一入口
 ```
 
+### 3.5 实时数据平台
+
+#### 实时分析基础
+- [ ] OLAP vs OLTP
+- [ ] 实时数据管道架构
+- [ ] 流处理与批处理
+- [ ] 实时分析场景与案例
+
+#### Apache Pinot
+- [ ] Pinot架构与核心组件
+- [ ] Schema与Table设计
+- [ ] 实时与批量数据摄入
+- [ ] Pinot查询语言（PQL/SQL）
+- [ ] 索引策略与查询优化
+- [ ] 与Kafka/Superset集成
+- [ ] 生产环境部署与运维
+
+#### 实操项目
+```
+项目：实时用户行为分析平台
+- Kafka实时数据摄入
+- Pinot实时OLAP分析
+- Superset可视化仪表盘
+- 实时监控与告警
+```
+
 ---
 
 ## 第四阶段：架构设计与安全（高级）
@@ -547,6 +573,20 @@ CKA (Administrator) → CKAD (Developer) → CKS (Security)
 - 《软件架构：架构模式》
 - 《构建安全的软件》
 - 《Site Reliability Engineering》
+- 《实时大数据分析：Apache Pinot实战》
+
+### 专题文档
+
+本仓库包含以下深度专题文档：
+
+| 专题 | 内容 | 路径 |
+|-----|------|------|
+| Helm 专题 | Helm 原理、高级用法、最佳实践、故障排查 | `helm-specification/` |
+| Kubernetes 专题 | K8s 核心概念、Operator 原理、证书管理、Secret 集成 | `kubernetes-specification/` |
+| GCP 专题 | GCP 服务管理、认证配置、GKE 连接、Cloud Service Mesh | `gcp-specification/` |
+| Terraform 专题 | Terraform 基础、GCP 集成、认证配置、最佳实践 | `terraform-specification/` |
+| Go 语言专题 | Go 语言规范、并发模型、标准库、测试、性能优化 | `go-specification/` |
+| Apache Pinot 专题 | Pinot 架构、部署、数据摄入、查询优化、生产运维 | `apache-pinot-specification/` |
 
 ### 在线学习平台
 - A Cloud Guru
